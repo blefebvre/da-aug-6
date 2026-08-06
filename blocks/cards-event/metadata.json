@@ -1,0 +1,39 @@
+{
+  "variantName": "cards-event",
+  "baseBlock": "cards",
+  "version": "1.0.0",
+  "created": "2026-08-06T15:23:00.000Z",
+  "sourceContext": {
+    "originUrl": "https://www.atlascopcogroup.com/en",
+    "originPage": "Atlas Copco Group homepage",
+    "blockPosition": "middle"
+  },
+  "visualCharacteristics": {
+    "colorScheme": "dark",
+    "density": "compact",
+    "purpose": "events",
+    "imagePattern": "noimg"
+  },
+  "contentPattern": {
+    "structure": "date badge + label + title (+ optional description/CTAs) per card",
+    "buttonCount": 2,
+    "imageCount": 0
+  },
+  "reuseGuidance": {
+    "suitableFor": [
+      "investor results + calendar/event cards on dark backgrounds",
+      "date-badge event cards without images"
+    ],
+    "notSuitableFor": [
+      "cards that require images",
+      "light-background news listings (use cards-news)"
+    ]
+  },
+  "usage": {
+    "pagesUsing": [
+      "/en"
+    ],
+    "reuseCount": 1,
+    "lastUsed": "2026-08-06T15:23:00.000Z"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "variantName": "cards-nav",
+  "baseBlock": "cards",
+  "version": "1.0.0",
+  "created": "2026-08-06T15:23:00.000Z",
+  "sourceContext": {
+    "originUrl": "https://www.atlascopcogroup.com/en",
+    "originPage": "Atlas Copco Group homepage",
+    "blockPosition": "top"
+  },
+  "visualCharacteristics": {
+    "colorScheme": "light",
+    "density": "compact",
+    "purpose": "navigation",
+    "imagePattern": "noimg"
+  },
+  "contentPattern": {
+    "structure": "label + title + description (whole card links)",
+    "buttonCount": 0,
+    "imageCount": 0
+  },
+  "reuseGuidance": {
+    "suitableFor": [
+      "quick-navigation card rows (Careers/Investors/Media)",
+      "label+title+description link cards without images"
+    ],
+    "notSuitableFor": [
+      "cards that require images"
+    ]
+  },
+  "usage": {
+    "pagesUsing": [
+      "/en"
+    ],
+    "reuseCount": 1,
+    "lastUsed": "2026-08-06T15:23:00.000Z"
+  }
+}

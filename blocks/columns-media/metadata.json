@@ -1,0 +1,39 @@
+{
+  "variantName": "columns-media",
+  "baseBlock": "columns",
+  "version": "1.0.0",
+  "created": "2026-08-06T15:23:00.000Z",
+  "sourceContext": {
+    "originUrl": "https://www.atlascopcogroup.com/en",
+    "originPage": "Atlas Copco Group homepage",
+    "blockPosition": "middle"
+  },
+  "visualCharacteristics": {
+    "colorScheme": "light",
+    "density": "wide",
+    "purpose": "feature",
+    "imagePattern": "large"
+  },
+  "contentPattern": {
+    "structure": "image + (label + heading + description + CTA) side-by-side",
+    "buttonCount": 1,
+    "imageCount": 1
+  },
+  "reuseGuidance": {
+    "suitableFor": [
+      "single or paired image+text promotional bands",
+      "side-by-side feature/promo layouts"
+    ],
+    "notSuitableFor": [
+      "3+ repeated compact items (use cards)",
+      "tabular data"
+    ]
+  },
+  "usage": {
+    "pagesUsing": [
+      "/en"
+    ],
+    "reuseCount": 1,
+    "lastUsed": "2026-08-06T15:23:00.000Z"
+  }
+}

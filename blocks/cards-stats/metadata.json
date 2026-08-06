@@ -1,0 +1,38 @@
+{
+  "variantName": "cards-stats",
+  "baseBlock": "cards",
+  "version": "1.0.0",
+  "created": "2026-08-06T15:23:00.000Z",
+  "sourceContext": {
+    "originUrl": "https://www.atlascopcogroup.com/en",
+    "originPage": "Atlas Copco Group homepage",
+    "blockPosition": "middle"
+  },
+  "visualCharacteristics": {
+    "colorScheme": "light",
+    "density": "compact",
+    "purpose": "key-figures",
+    "imagePattern": "noimg"
+  },
+  "contentPattern": {
+    "structure": "label + large numeric value per card",
+    "buttonCount": 0,
+    "imageCount": 0
+  },
+  "reuseGuidance": {
+    "suitableFor": [
+      "key-figure / statistic rows (revenue, margin, etc.)",
+      "label + big-number stat cards without images"
+    ],
+    "notSuitableFor": [
+      "cards that require images or long descriptions"
+    ]
+  },
+  "usage": {
+    "pagesUsing": [
+      "/en"
+    ],
+    "reuseCount": 1,
+    "lastUsed": "2026-08-06T15:23:00.000Z"
+  }
+}

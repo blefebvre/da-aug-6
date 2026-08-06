@@ -1,0 +1,39 @@
+{
+  "variantName": "carousel-stories",
+  "baseBlock": "carousel",
+  "version": "1.0.0",
+  "created": "2026-08-06T15:23:00.000Z",
+  "sourceContext": {
+    "originUrl": "https://www.atlascopcogroup.com/en",
+    "originPage": "Atlas Copco Group homepage",
+    "blockPosition": "bottom"
+  },
+  "visualCharacteristics": {
+    "colorScheme": "accent",
+    "density": "wide",
+    "purpose": "innovation-stories",
+    "imagePattern": "large"
+  },
+  "contentPattern": {
+    "structure": "image + (label + heading + description + CTA) per slide",
+    "buttonCount": 1,
+    "imageCount": 1
+  },
+  "reuseGuidance": {
+    "suitableFor": [
+      "rotating story/feature galleries",
+      "image-led promotional slideshows"
+    ],
+    "notSuitableFor": [
+      "static single item",
+      "content that must all be visible at once"
+    ]
+  },
+  "usage": {
+    "pagesUsing": [
+      "/en"
+    ],
+    "reuseCount": 1,
+    "lastUsed": "2026-08-06T15:23:00.000Z"
+  }
+}

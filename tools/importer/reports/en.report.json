@@ -1,0 +1,20 @@
+{
+  "status": "success",
+  "url": "https://www.atlascopcogroup.com/en",
+  "path": "en",
+  "timestamp": "2026-08-06T17:48:45.299Z",
+  "title": "Atlas Copco Group Homepage",
+  "template": "homepage",
+  "blocks": [
+    "hero-banner",
+    "hero-banner",
+    "cards-nav",
+    "columns-media",
+    "columns-media",
+    "cards-feature",
+    "cards-news",
+    "cards-event",
+    "cards-stats",
+    "carousel-stories"
+  ]
+}

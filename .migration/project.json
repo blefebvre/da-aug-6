@@ -1,0 +1,10 @@
+{
+  "type": "da",
+  "sites": {
+    "da-aug-6": {
+      "previewOrg": "blefebvre",
+      "previewSite": "da-aug-6",
+      "libraryUrl": "https://main--sta-boilerplate--aemdemos.aem.page/tools/sidekick/library.json"
+    }
+  }
+}
