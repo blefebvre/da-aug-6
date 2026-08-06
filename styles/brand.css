@@ -5,8 +5,8 @@
  */
 :root {
   /* Font families */
-  --heading-font-family: "Noto Serif", Arial, Helvetica, sans-serif;
-  --body-font-family: "Noto Sans", Arial, Helvetica, sans-serif;
+  --heading-font-family: "Noto Serif", arial, helvetica, sans-serif;
+  --body-font-family: "Noto Sans", arial, helvetica, sans-serif;
   --fixed-font-family: "Roboto Mono", menlo, consolas, "Liberation Mono", monospace;
 
   /* Brand colors */
