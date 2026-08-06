@@ -1,47 +1,282 @@
+/*
+ * hero-banner — two full-bleed photographic banner treatments, differentiated
+ * by section context:
+ *   1. default        -> dark hero: photo fills the block, white serif H1 +
+ *                        subheading overlaid lower-left, subtle left scrim.
+ *   2. .filled-gold   -> sustainability banner: photo fills the block, a
+ *                        contained warm-cream (#fcf8f2) content box overlaid on
+ *                        the left with label + heading + text + CTA button.
+ *
+ * The default treatment is the low-specificity base; .filled-gold rules override
+ * it (higher specificity, later in the file).
+ *
+ * Decorated DOM (both instances):
+ *   .hero-banner.block
+ *     > div  (row 1 – image)   > div > picture > img
+ *     > div  (row 2 – content) > div > (h1|p...)  /  (p, h2, p, p>a)
+ *
+ * Values measured from atlascopcogroup.com/en at 1440x900.
+ */
+
+/* ---- Full-bleed: let the block span the section (override the 1200 wrapper) ---- */
 .hero-banner-container .hero-banner-wrapper {
-  max-width: unset;
+  max-width: none;
   padding: 0;
 }
 
+/* filled-gold banner sits flush between neighbouring sections */
+main .section.filled-gold.hero-banner-container {
+  margin: 0;
+  padding: 0;
+}
+
+/* ======================= shared structure ======================= */
 .hero-banner {
   position: relative;
-  padding: 40px 24px;
-  min-height: 300px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 380px;
+  overflow: hidden;
+  color: #fff;
 }
 
-.hero-banner h1,
-.hero-banner h2,
-.hero-banner h3,
-.hero-banner h4,
-.hero-banner h5,
-.hero-banner h6,
-.hero-banner p {
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
-  color: var(--background-color);
-}
-
-.hero-banner.no-image * {
-  color: var(--text-color);
-}
-
-.hero-banner picture {
+/* subtle scrim over the photo for reversed-text contrast (left-weighted) */
+.hero-banner::before {
+  content: "";
   position: absolute;
-  z-index: -1;
   inset: 0;
-  object-fit: cover;
+  z-index: 1;
+  background: linear-gradient(
+    90deg,
+    rgb(0 0 0 / 55%) 0%,
+    rgb(0 0 0 / 25%) 45%,
+    rgb(0 0 0 / 0%) 75%
+  );
+}
+
+/* row 1 -> absolute background image layer */
+.hero-banner > div:first-child {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  margin: 0;
+}
+
+/* row 2 -> content layer, pinned to the page left gutter */
+.hero-banner > div:last-child {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  margin: 0;
+  padding: 32px 24px;
   box-sizing: border-box;
 }
 
-.hero-banner img {
-  object-fit: cover;
+/* inner cell of the image row fills the layer */
+.hero-banner > div:first-child > div {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+/* content column (instance 1) */
+.hero-banner > div:last-child > div {
+  max-width: 800px;
+}
+
+.hero-banner picture {
+  display: block;
   width: 100%;
   height: 100%;
 }
 
+.hero-banner picture img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ---- instance 1 typography (dark hero, reversed text) ---- */
+.hero-banner h1 {
+  margin: 0 0 16px;
+  color: #fff;
+  font-family: var(--heading-font-family);
+  font-weight: 400;
+  font-size: 36px;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+}
+
+.hero-banner p {
+  margin: 0;
+  color: #fff;
+  font-family: var(--body-font-family);
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1.45;
+}
+
+/* graceful fallback when an image is not authored */
+.hero-banner.no-image {
+  min-height: 0;
+  color: var(--text-color);
+}
+
+.hero-banner.no-image::before {
+  content: none;
+}
+
+.hero-banner.no-image > div:first-child {
+  position: static;
+}
+
+.hero-banner.no-image h1,
+.hero-banner.no-image p {
+  color: var(--text-color);
+}
+
+/* ===== instance 2: sustainability (filled-gold) — no dark scrim, cream box ===== */
+.section.filled-gold .hero-banner::before {
+  content: none;
+}
+
+.section.filled-gold .hero-banner > div:last-child {
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+/* the contained cream content box */
+.section.filled-gold .hero-banner > div:last-child > div {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 620px;
+  padding: 32px;
+  border-radius: 24px 24px 24px 0;
+  background-color: var(--brand-gold-pale); /* #fcf8f2 warm cream */
+}
+
+.section.filled-gold .hero-banner > div:last-child > div > * {
+  margin: 0;
+}
+
+/* description paragraph(s) - dark body text */
+.section.filled-gold .hero-banner p {
+  color: var(--text-color); /* #3e3f41 */
+  font-family: var(--body-font-family);
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+/* label / pretitle (first paragraph) */
+.section.filled-gold .hero-banner p:first-child {
+  color: var(--brand-teal-dark); /* #04424d */
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.section.filled-gold .hero-banner h2 {
+  color: var(--brand-teal); /* #054e5a */
+  font-family: var(--heading-font-family);
+  font-weight: 400;
+  font-size: 28px;
+  line-height: 1.25;
+}
+
+/* CTA container spacing */
+.section.filled-gold .hero-banner p:last-child {
+  margin-top: 8px;
+}
+
+/* CTA button (plain authored link -> teal gradient pill with arrow) */
+.section.filled-gold .hero-banner a:any-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 24px;
+  border-radius: 4px;
+  background-image: linear-gradient(135deg, #1a8377 0%, #05435e 100%);
+  color: #fff;
+  font-family: var(--body-font-family);
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: filter 0.2s ease;
+}
+
+.section.filled-gold .hero-banner a:any-link::after {
+  content: "";
+  width: 18px;
+  height: 18px;
+  background-color: currentcolor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M13.5 5.5l6.5 6.5-6.5 6.5-1.4-1.4 4.1-4.1H4v-2h12.2l-4.1-4.1z'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+
+.section.filled-gold .hero-banner a:hover {
+  color: #fff;
+  text-decoration: none;
+  filter: brightness(1.08);
+}
+
+/* ======================= tablet / desktop ======================= */
 @media (width >= 900px) {
   .hero-banner {
+    min-height: 640px;
+  }
+
+  .hero-banner > div:last-child {
     padding: 40px 32px;
+  }
+
+  .hero-banner h1 {
+    margin: 0 0 24px;
+    font-size: var(--heading-font-size-xxl); /* 56px */
+    line-height: var(--heading-line-height-xxl); /* 63.84px */
+    letter-spacing: -1px;
+  }
+
+  .hero-banner p {
+    font-size: 24px;
+    line-height: 43.2px;
+  }
+
+  .section.filled-gold .hero-banner > div:last-child {
+    padding-top: 96px;
+    padding-bottom: 96px;
+  }
+
+  .section.filled-gold .hero-banner > div:last-child > div {
+    gap: 24px;
+    padding: 48px;
+  }
+
+  .section.filled-gold .hero-banner h2 {
+    font-size: 40px;
+    line-height: 56px;
+  }
+
+  .section.filled-gold .hero-banner p {
+    font-size: 24px;
+    line-height: 43.2px;
+  }
+
+  .section.filled-gold .hero-banner a:any-link {
+    padding: 10px 30px;
+    font-size: 18px;
+    letter-spacing: 1.125px;
+  }
+
+  .section.filled-gold .hero-banner a:any-link::after {
+    width: 22px;
+    height: 22px;
   }
 }
