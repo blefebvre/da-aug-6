@@ -1,0 +1,58 @@
+/*
+ * brand.css — Atlas Copco Group design tokens.
+ * Values measured from https://www.atlascopcogroup.com/en at 1440x900 (ground truth).
+ * Headings use Noto Serif at weight 400 (the light serif is the brand signature).
+ */
+:root {
+  /* Font families */
+  --heading-font-family: "Noto Serif", Arial, Helvetica, sans-serif;
+  --body-font-family: "Noto Sans", Arial, Helvetica, sans-serif;
+  --fixed-font-family: "Roboto Mono", menlo, consolas, "Liberation Mono", monospace;
+
+  /* Brand colors */
+  --brand-teal: #054e5a;        /* deep teal — primary text / dark sections */
+  --brand-teal-dark: #04424d;   /* darker teal — extra-dark sections */
+  --brand-sand: #e1b77e;        /* sand / gold accent (quicklinks, filled-gold box) */
+  --brand-gold-pale: #fcf8f2;   /* warm off-white (bg-gold sections) */
+  --brand-pale-teal: #b4cace;   /* pale teal accents on dark */
+  --brand-grey-bg: #f3f6f7;     /* light grey surface */
+  --brand-grey-bg-2: #e6edee;   /* light teal-grey surface */
+
+  /* Semantic colors */
+  --background-color: #fff;
+  --light-color: var(--brand-grey-bg);
+  --dark-color: var(--brand-teal);
+  --text-color: #3e3f41;        /* body grey */
+  --text-strong-color: var(--brand-teal); /* headings / primary text */
+  --link-color: #1072b9;        /* link blue */
+  --link-hover-color: var(--brand-teal);
+
+  /* Body sizes */
+  --body-font-size-m: 18px;
+  --body-font-size-s: 16px;
+  --body-font-size-xs: 14px;
+  --body-line-height: 1.2;      /* 21.6px on 18px */
+
+  /* Heading sizes (desktop, measured) */
+  --heading-font-size-xxl: 56px; /* h1 */
+  --heading-font-size-xl: 32px;  /* h2 */
+  --heading-font-size-l: 32px;   /* h3 */
+  --heading-font-size-m: 28px;
+  --heading-font-size-s: 24px;
+  --heading-font-size-xs: 20px;
+
+  /* Heading line-heights */
+  --heading-line-height-xxl: 63.84px; /* h1 */
+  --heading-line-height-xl: 48px;     /* h2 */
+  --heading-line-height-l: 48px;      /* h3 */
+
+  /* Layout */
+  --nav-height: 72px;
+  --section-max-width: 1200px;
+}
+
+@media (width >= 900px) {
+  :root {
+    --body-font-size-m: 18px;
+  }
+}

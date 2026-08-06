@@ -481,7 +481,9 @@ var CustomImportScript = (() => {
         name: "columns-media",
         instances: [
           "#main .teaser.ds-brand-promo-card",
-          "#main .ds-brand-container.grid-col-2.my-0.py-0"
+          "#main .ds-brand-container.grid-col-2.my-0.py-0",
+          "#main .teaser.ds-brand-teaser-card.mb-12",
+          "#main .teaser.ds-brand-teaser-card.mb-8.ds-brand-reversed"
         ]
       },
       {
@@ -506,16 +508,17 @@ var CustomImportScript = (() => {
       }
     ],
     sections: [
-      { id: "s1", name: "Hero banner", selector: "#main .teaser.ds-brand-hero-large-banner", style: null, blocks: ["hero-banner"], defaultContent: [] },
-      { id: "s2", name: "Navigation cards", selector: "#main .ds-brand-block-navigation-cards", style: null, blocks: ["cards-nav"], defaultContent: [] },
-      { id: "s3", name: "People Podcast promo", selector: "#main .teaser.ds-brand-promo-card", style: null, blocks: ["columns-media"], defaultContent: [] },
-      { id: "s4", name: "Solutions for real challenges and needs", selector: "#main .ds-brand-bg-dark", style: "dark", blocks: ["cards-feature"], defaultContent: ["#main .ds-brand-bg-dark h2", "#main .ds-brand-bg-dark .cmp-text p"] },
-      { id: "s5", name: "Sustainability banner", selector: "#main .ds-brand-block-section-teaser", style: null, blocks: ["hero-banner"], defaultContent: [] },
-      { id: "s6", name: "Recent press releases", selector: "#main .recentpressrelease", style: null, blocks: ["cards-news"], defaultContent: ["#main .recentpressrelease .banner-title", "#main .recentpressrelease .read-all-container"] },
+      { id: "s1", name: "Hero banner + quicklink cards", selector: "#main .teaser.ds-brand-hero-large-banner", style: null, blocks: ["hero-banner", "cards-nav"], defaultContent: [] },
+      { id: "s2", name: "People Podcast promo", selector: "#main .teaser.ds-brand-promo-card", style: null, blocks: ["columns-media"], defaultContent: [] },
+      { id: "s3", name: "Solutions for real challenges and needs", selector: "#main .ds-brand-bg-dark", style: "dark", blocks: ["cards-feature"], defaultContent: ["#main .ds-brand-bg-dark h2", "#main .ds-brand-bg-dark .cmp-text p"] },
+      { id: "s4", name: "Sustainability banner", selector: "#main .ds-brand-block-section-teaser", style: "filled-gold", blocks: ["hero-banner"], defaultContent: [] },
+      { id: "s5", name: "Recent press releases", selector: "#main .recentpressrelease", style: null, blocks: ["cards-news"], defaultContent: ["#main .recentpressrelease .banner-title", "#main .recentpressrelease .read-all-container"] },
+      { id: "s6", name: "Spacer", selector: "#main .ds-brand-container.ds-brand-filled-dark + .container.px-0.py-4", style: null, blocks: [], defaultContent: [] },
       { id: "s7", name: "Latest results and upcoming events", selector: "#main .ds-brand-bg-extra-dark", style: "extra-dark", blocks: ["cards-event"], defaultContent: ["#main .ds-brand-bg-extra-dark .ds-brand-text-positive"] },
       { id: "s8", name: "The Group in 2025 (key figures)", selector: "#main .ds-brand-container:has(.grid-col-4)", style: null, blocks: ["cards-stats"], defaultContent: ["#main .ds-brand-container:has(.grid-col-4) .cmp-title"] },
-      { id: "s9", name: "CEO quote + Jobs & Innovation promos", selector: "#main .ds-brand-container.grid-col-2.my-0.py-0", style: null, blocks: ["columns-media"], defaultContent: ["#main .ds-brand-container.grid-col-2.my-0.py-0 blockquote"] },
-      { id: "s10", name: "There is always a better way (innovation stories carousel)", selector: "#main .ds-brand-block-carousel", style: "gold", blocks: ["carousel-stories"], defaultContent: ["#main .ds-brand-block-carousel .cmp-teaser__title", "#main .ds-brand-block-carousel .cmp-teaser__description"] }
+      { id: "s9", name: "CEO quote", selector: "#main .ds-brand-container.grid-col-2.my-0.py-0", style: null, blocks: ["columns-media"], defaultContent: ["#main .ds-brand-container.grid-col-2.my-0.py-0 blockquote"] },
+      { id: "s10", name: "Jobs & Innovation promos", selector: "#main .ds-brand-container.grid-col-2.my-0.py-0 + .ds-brand-container", style: null, blocks: ["columns-media"], defaultContent: [] },
+      { id: "s11", name: "There is always a better way (innovation stories carousel)", selector: "#main .ds-brand-block-carousel", style: "bg-gold", blocks: ["carousel-stories"], defaultContent: ["#main .ds-brand-block-carousel .cmp-teaser__title", "#main .ds-brand-block-carousel .cmp-teaser__description"] }
     ]
   };
   var transformers = [

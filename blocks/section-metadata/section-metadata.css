@@ -1,0 +1,9 @@
+/*
+ * Section Metadata is a configuration-only block: its decorate() applies style
+ * classes to the parent section and removes itself, so the block element renders
+ * nothing. Visual treatments for the style tokens (dark, extra-dark, filled-gold,
+ * bg-gold, ...) are applied at the section level during design migration.
+ */
+.section-metadata {
+  display: none;
+}

@@ -28,7 +28,9 @@
           "name": "columns-media",
           "instances": [
             "#main .teaser.ds-brand-promo-card",
-            "#main .ds-brand-container.grid-col-2.my-0.py-0"
+            "#main .ds-brand-container.grid-col-2.my-0.py-0",
+            "#main .teaser.ds-brand-teaser-card.mb-12",
+            "#main .teaser.ds-brand-teaser-card.mb-8.ds-brand-reversed"
           ]
         },
         {
@@ -65,26 +67,17 @@
       "sections": [
         {
           "id": "s1",
-          "name": "Hero banner",
+          "name": "Hero banner + quicklink cards",
           "selector": "#main .teaser.ds-brand-hero-large-banner",
           "style": null,
           "blocks": [
-            "hero-banner"
-          ],
-          "defaultContent": []
-        },
-        {
-          "id": "s2",
-          "name": "Navigation cards",
-          "selector": "#main .ds-brand-block-navigation-cards",
-          "style": null,
-          "blocks": [
+            "hero-banner",
             "cards-nav"
           ],
           "defaultContent": []
         },
         {
-          "id": "s3",
+          "id": "s2",
           "name": "People Podcast promo",
           "selector": "#main .teaser.ds-brand-promo-card",
           "style": null,
@@ -94,7 +87,7 @@
           "defaultContent": []
         },
         {
-          "id": "s4",
+          "id": "s3",
           "name": "Solutions for real challenges and needs",
           "selector": "#main .ds-brand-bg-dark",
           "style": "dark",
@@ -107,17 +100,17 @@
           ]
         },
         {
-          "id": "s5",
+          "id": "s4",
           "name": "Sustainability banner",
           "selector": "#main .ds-brand-block-section-teaser",
-          "style": null,
+          "style": "filled-gold",
           "blocks": [
             "hero-banner"
           ],
           "defaultContent": []
         },
         {
-          "id": "s6",
+          "id": "s5",
           "name": "Recent press releases",
           "selector": "#main .recentpressrelease",
           "style": null,
@@ -128,6 +121,14 @@
             "#main .recentpressrelease .banner-title",
             "#main .recentpressrelease .read-all-container"
           ]
+        },
+        {
+          "id": "s6",
+          "name": "Spacer",
+          "selector": "#main .ds-brand-container.ds-brand-filled-dark + .container.px-0.py-4",
+          "style": null,
+          "blocks": [],
+          "defaultContent": []
         },
         {
           "id": "s7",
@@ -155,7 +156,7 @@
         },
         {
           "id": "s9",
-          "name": "CEO quote + Jobs & Innovation promos",
+          "name": "CEO quote",
           "selector": "#main .ds-brand-container.grid-col-2.my-0.py-0",
           "style": null,
           "blocks": [
@@ -167,9 +168,19 @@
         },
         {
           "id": "s10",
+          "name": "Jobs & Innovation promos",
+          "selector": "#main .ds-brand-container.grid-col-2.my-0.py-0 + .ds-brand-container",
+          "style": null,
+          "blocks": [
+            "columns-media"
+          ],
+          "defaultContent": []
+        },
+        {
+          "id": "s11",
           "name": "There is always a better way (innovation stories carousel)",
           "selector": "#main .ds-brand-block-carousel",
-          "style": "gold",
+          "style": "bg-gold",
           "blocks": [
             "carousel-stories"
           ],
