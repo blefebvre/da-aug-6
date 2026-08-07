@@ -6,15 +6,47 @@ import { loadFragment } from '../fragment/fragment.js';
  * @param {Element} block The footer block element
  */
 export default async function decorate(block) {
-  // load footer as fragment
+  // Load the footer fragment. The migrated content lives under /content locally
+  // (and at the DA root once published), so try /content/footer first and fall
+  // back to the configured/root path. Trying /content first avoids picking up
+  // the backend's default boilerplate footer that is still served at the root.
   const footerMeta = getMetadata('footer');
   const footerPath = footerMeta ? new URL(footerMeta, window.location).pathname : '/footer';
-  const fragment = await loadFragment(footerPath);
+  let fragment = await loadFragment('/content/footer');
+  if (!fragment) fragment = await loadFragment(footerPath);
 
-  // decorate footer DOM
   block.textContent = '';
   const footer = document.createElement('div');
+  footer.className = 'footer-inner';
   while (fragment.firstElementChild) footer.append(fragment.firstElementChild);
+
+  // Label the five fragment sections for styling.
+  const sectionClasses = ['footer-brand', 'footer-links', 'footer-links', 'footer-about', 'footer-legal'];
+  [...footer.children].forEach((section, i) => {
+    if (sectionClasses[i]) section.classList.add(sectionClasses[i]);
+  });
+
+  // The About section's list is the social-icon row.
+  const about = footer.querySelector('.footer-about');
+  if (about) {
+    const socialList = about.querySelector('ul');
+    if (socialList) socialList.classList.add('footer-social');
+  }
+
+  // Wire "Manage cookies" (href="#consent") to the consent mechanism instead of
+  // navigating. Emits a custom event, and triggers OneTrust's preference center
+  // if that global is present.
+  const consentLink = footer.querySelector('a[href="#consent"], a[href$="#consent"]');
+  if (consentLink) {
+    consentLink.classList.add('footer-manage-cookies');
+    consentLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (window.OneTrust && typeof window.OneTrust.ToggleInfoDisplay === 'function') {
+        window.OneTrust.ToggleInfoDisplay();
+      }
+      document.dispatchEvent(new CustomEvent('manage-cookies'));
+    });
+  }
 
   block.append(footer);
 }
