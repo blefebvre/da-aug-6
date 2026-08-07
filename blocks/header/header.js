@@ -51,15 +51,23 @@ function decorateMegaMenu(li, nav) {
   if (!link || !panelList) return; // plain link, no panel
 
   const label = link.textContent.trim();
-  const href = link.getAttribute('href');
+  const href = link.getAttribute('href') || '#';
+
+  // Split-link pattern (matches source + the mobile spec): a navigable <a> label
+  // plus an adjacent <button> that opens the mega-menu panel. The section URL is
+  // always reachable; the panel is keyboard-accessible via the button.
+  const navLink = document.createElement('a');
+  navLink.className = 'nav-link';
+  navLink.href = href;
+  navLink.textContent = label;
 
   const trigger = document.createElement('button');
   trigger.type = 'button';
   trigger.className = 'nav-trigger';
   trigger.setAttribute('aria-haspopup', 'true');
   trigger.setAttribute('aria-expanded', 'false');
-  if (href) trigger.dataset.href = href;
-  trigger.innerHTML = `<span>${label}</span><span class="nav-caret" aria-hidden="true"></span>`;
+  trigger.setAttribute('aria-label', `${label} menu`);
+  trigger.innerHTML = '<span class="nav-caret" aria-hidden="true"></span>';
 
   const panel = document.createElement('div');
   panel.className = 'nav-megamenu';
@@ -69,12 +77,12 @@ function decorateMegaMenu(li, nav) {
   const closeBtn = document.createElement('button');
   closeBtn.type = 'button';
   closeBtn.className = 'nav-megamenu-close';
-  closeBtn.textContent = 'Close menu';
+  // Desktop shows "Close menu"; mobile shows "Back to <section>". Both labels
+  // are present; CSS reveals the right one per breakpoint.
+  closeBtn.innerHTML = `<span class="nav-close-desktop">Close menu</span><span class="nav-close-mobile">Back to ${label}</span>`;
   closeBtn.addEventListener('click', () => {
     li.classList.remove('nav-open');
     trigger.setAttribute('aria-expanded', 'false');
-    // Return focus to the trigger without re-triggering the focus-to-open
-    // handler (which would immediately reopen the panel).
     trigger.dataset.suppressFocusOpen = 'true';
     trigger.focus();
     delete trigger.dataset.suppressFocusOpen;
@@ -84,9 +92,10 @@ function decorateMegaMenu(li, nav) {
   panel.append(inner);
 
   li.textContent = '';
-  li.append(trigger, panel);
+  li.append(navLink, trigger, panel);
 
-  // hover / focus open (desktop)
+  // Desktop: hovering the row (or focusing either control) reveals the panel;
+  // the chevron button toggles it; the label link navigates.
   li.addEventListener('mouseenter', () => { if (isDesktop.matches) openPanel(li, nav); });
   li.addEventListener('mouseleave', () => {
     if (isDesktop.matches) {
@@ -94,25 +103,21 @@ function decorateMegaMenu(li, nav) {
       trigger.setAttribute('aria-expanded', 'false');
     }
   });
+  navLink.addEventListener('focus', () => {
+    if (isDesktop.matches) openPanel(li, nav);
+  });
   trigger.addEventListener('focus', () => {
     if (trigger.dataset.suppressFocusOpen === 'true') return;
     if (isDesktop.matches) openPanel(li, nav);
   });
-  trigger.addEventListener('click', () => {
-    if (isDesktop.matches) {
-      // Desktop: hover/focus already reveals the panel; a click on the label
-      // navigates to the section landing page (matches source behaviour where
-      // the top-level item is itself a link).
-      if (trigger.dataset.href) window.location.assign(trigger.dataset.href);
+  trigger.addEventListener('click', (e) => {
+    e.preventDefault();
+    const open = li.classList.contains('nav-open');
+    if (open) {
+      li.classList.remove('nav-open');
+      trigger.setAttribute('aria-expanded', 'false');
     } else {
-      // Mobile: click toggles the panel open/closed.
-      const open = li.classList.contains('nav-open');
-      if (open) {
-        li.classList.remove('nav-open');
-        trigger.setAttribute('aria-expanded', 'false');
-      } else {
-        openPanel(li, nav);
-      }
+      openPanel(li, nav);
     }
   });
 }
@@ -159,7 +164,19 @@ function toggleMobileMenu(nav, force) {
   const open = force !== undefined ? force : nav.getAttribute('aria-expanded') !== 'true';
   nav.setAttribute('aria-expanded', open ? 'true' : 'false');
   const button = nav.querySelector('.nav-hamburger button');
-  if (button) button.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if (button) {
+    button.setAttribute('aria-expanded', open ? 'true' : 'false');
+    const label = button.querySelector('.nav-hamburger-label');
+    if (label) label.textContent = open ? 'Close' : 'Menu';
+  }
+  // When closing the drawer, also collapse any open sub-panels.
+  if (!open) {
+    nav.querySelectorAll('.nav-primary > li.nav-open').forEach((li) => {
+      li.classList.remove('nav-open');
+      const t = li.querySelector('.nav-trigger');
+      if (t) t.setAttribute('aria-expanded', 'false');
+    });
+  }
   document.body.style.overflowY = open && !isDesktop.matches ? 'hidden' : '';
 }
 

@@ -91,13 +91,16 @@ header .nav-primary {
 
 header .nav-primary > li {
   position: static;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-header .nav-primary > li > a,
+/* section label link + chevron toggle share this look */
+header .nav-primary > li > .nav-link,
 header .nav-primary > li > .nav-trigger {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
   margin: 0;
   padding: 0;
   border: 0;
@@ -113,14 +116,13 @@ header .nav-primary > li > .nav-trigger {
   cursor: pointer;
 }
 
-header .nav-primary > li > a:hover,
-header .nav-primary > li > .nav-trigger:hover,
-header .nav-primary > li > .nav-trigger[aria-expanded="true"] {
+header .nav-primary > li > .nav-link:hover,
+header .nav-primary > li.nav-open > .nav-link {
   text-decoration: underline;
   text-underline-offset: 6px;
 }
 
-/* dropdown caret on items that open a panel */
+/* dropdown caret on the chevron toggle */
 header .nav-trigger .nav-caret {
   width: 9px;
   height: 9px;
@@ -187,6 +189,11 @@ header .nav-megamenu-close::after {
 
 header .nav-megamenu-close:hover {
   text-decoration: underline;
+}
+
+/* desktop shows "Close menu"; the mobile "Back to <section>" label is hidden */
+header .nav-close-mobile {
+  display: none;
 }
 
 /* grouped column layout inside a panel */
@@ -322,37 +329,49 @@ header .nav-hamburger {
 }
 
 /* =====================================================================
-   MOBILE — below 900px. Baseline that hides desktop rows and shows the
-   "Menu" trigger so the header is never broken between phases. Full
-   drawer behaviour lands in the mobile phase.
+   MOBILE — below 900px. Full-width slide-in drawer.
+   - Header bar 80px, solid teal, logo 120px, "Menu" text trigger at right.
+   - Each of the six sections is a 55px full-width row: the label link
+     navigates; a separate 56x54 chevron button expands a slide-in sub-panel.
+   - Sub-panels slide in from the right (translateX) with a "Go back" / "Back
+     to <parent>" affordance.
+   - Locations + English render as full-width 44px rows at the drawer bottom.
    ===================================================================== */
 @media (width < 900px) {
+  /* header bar: always solid teal + fixed on mobile */
+  header .nav-wrapper,
+  header .nav-wrapper.nav-sticky {
+    position: fixed;
+    background-color: var(--brand-teal);
+  }
+
   header nav,
   header .nav-wrapper.nav-sticky nav {
     height: 80px;
     padding: 0 16px;
-  }
-
-  header .nav-wrapper {
-    position: fixed;
-    background-color: var(--brand-teal);
+    gap: 0;
   }
 
   header .nav-brand img {
     width: 120px;
   }
 
+  /* "Menu" text trigger, right-aligned */
   header .nav-hamburger {
     display: inline-flex;
     align-items: center;
     margin-left: auto;
     order: 3;
+    height: 80px;
   }
 
   header .nav-hamburger button {
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    height: 80px;
+    min-width: 90px;
+    justify-content: flex-end;
     margin: 0;
     border: 0;
     background: none;
@@ -364,8 +383,204 @@ header .nav-hamburger {
     cursor: pointer;
   }
 
-  header .nav-sections,
+  /* drawer: the sections list slides down/covers the viewport below the bar */
+  header .nav-sections {
+    display: none;
+    position: fixed;
+    inset: 80px 0 0;
+    z-index: 40;
+    background: #fff;
+    overflow: hidden auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  header nav[aria-expanded="true"] .nav-sections {
+    display: block;
+  }
+
+  /* the primary list and every sub-list are full-width stacked rows */
+  header .nav-primary,
+  header .nav-megamenu ul {
+    display: block;
+    width: 100%;
+  }
+
+  header .nav-primary > li {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    min-height: 55px;
+    border-bottom: 1px solid var(--brand-grey-bg-2);
+    position: static;
+  }
+
+  /* label link fills the row (navigates) */
+  header .nav-primary > li > .nav-link {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    min-height: 55px;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--brand-teal);
+  }
+
+  /* chevron button: separate 56x54 expand target on the right */
+  header .nav-primary > li > .nav-trigger {
+    flex: 0 0 56px;
+    width: 56px;
+    height: 54px;
+    align-self: center;
+    justify-content: center;
+    border-left: 1px solid var(--brand-grey-bg-2);
+    color: var(--brand-teal);
+  }
+
+  header .nav-primary > li > .nav-trigger .nav-caret {
+    /* point right (indicates "drills into a sub-panel") */
+    transform: rotate(-45deg);
+    margin: 0;
+  }
+
+  /* sub-panel: full-width, slides in from the right when its row is open.
+     visibility:hidden keeps it out of the a11y tree (and untabbable) while
+     off-screen; the delayed visibility transition preserves the slide-out. */
+  header .nav-megamenu {
+    position: fixed;
+    inset: 80px 0 0;
+    display: block;
+    visibility: hidden;
+    transform: translateX(100%);
+    transition: transform 0.3s ease, visibility 0s linear 0.3s;
+    background: #fff;
+    box-shadow: none;
+    overflow-y: auto;
+    z-index: 41;
+  }
+
+  header .nav-primary > li.nav-open > .nav-megamenu {
+    visibility: visible;
+    transform: translateX(0);
+    transition: transform 0.3s ease, visibility 0s;
+  }
+
+  header .nav-megamenu-inner {
+    max-width: none;
+    min-height: 0;
+    padding: 0;
+    column-count: 1;
+  }
+
+  /* Close menu button becomes the "Back to <parent>" affordance at the top */
+  header .nav-megamenu-close {
+    position: static;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 55px;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--brand-grey-bg-2);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--brand-teal);
+  }
+
+  header .nav-megamenu-close::before {
+    content: "\2039"; /* ‹ back chevron */
+    margin-right: 8px;
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  header .nav-megamenu-close::after {
+    content: none;
+  }
+
+  header .nav-close-desktop {
+    display: none;
+  }
+
+  header .nav-close-mobile {
+    display: inline;
+  }
+
+  header .nav-megamenu-inner > ul {
+    column-count: 1;
+  }
+
+  header .nav-megamenu-inner > ul > li {
+    margin: 0;
+    border-bottom: 1px solid var(--brand-grey-bg-2);
+  }
+
+  header .nav-megamenu-inner > ul > li > a {
+    display: flex;
+    align-items: center;
+    min-height: 55px;
+    margin: 0;
+    padding: 0 16px;
+    font-family: var(--heading-font-family);
+    font-size: 18px;
+  }
+
+  header .nav-megamenu ul ul {
+    margin: 0;
+  }
+
+  header .nav-megamenu ul ul a {
+    padding: 12px 16px 12px 28px;
+    font-size: 15px;
+  }
+
+  /* tools drawer-bottom rows (Locations + English) */
   header .nav-tools {
     display: none;
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 42;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    margin: 0;
+    background: #fff;
+    border-top: 1px solid var(--brand-grey-bg-2);
+  }
+
+  header nav[aria-expanded="true"] .nav-tools {
+    display: flex;
+  }
+
+  header .nav-tools .nav-locations {
+    box-sizing: border-box;
+    width: 100%;
+    height: 44px;
+    padding: 0 16px;
+    border-radius: 0;
+    color: var(--brand-teal);
+    border-bottom: 1px solid var(--brand-grey-bg-2);
+  }
+
+  header .nav-tools .nav-lang {
+    width: 100%;
+  }
+
+  header .nav-tools .nav-lang-trigger {
+    box-sizing: border-box;
+    width: 100%;
+    height: 44px;
+    justify-content: flex-start;
+    padding: 0 16px;
+    color: var(--brand-teal);
+  }
+
+  header .nav-tools .nav-lang-menu {
+    position: static;
+    display: none;
+    box-shadow: none;
+  }
+
+  header .nav-tools .nav-lang.nav-open .nav-lang-menu {
+    display: block;
   }
 }
