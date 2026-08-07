@@ -33,12 +33,19 @@ export default async function decorate(block) {
     if (socialList) socialList.classList.add('footer-social');
   }
 
-  // Wire "Manage cookies" (href="#consent") to the consent mechanism instead of
-  // navigating. Emits a custom event, and triggers OneTrust's preference center
-  // if that global is present.
-  const consentLink = footer.querySelector('a[href="#consent"], a[href$="#consent"]');
+  // Wire the "Manage cookies" link to the consent mechanism instead of
+  // navigating. Match on the visible label (and the #consent href when present):
+  // Document Authoring rewrites a fragment-only href like "#consent" to "/" on
+  // publish, so keying solely on the href is unreliable. Emits a custom event,
+  // and triggers OneTrust's preference center if that global is present.
+  const legal = footer.querySelector('.footer-legal') || footer;
+  const consentLink = [...legal.querySelectorAll('a')].find(
+    (a) => a.getAttribute('href') === '#consent'
+      || /manage cookies/i.test(a.textContent.trim()),
+  );
   if (consentLink) {
     consentLink.classList.add('footer-manage-cookies');
+    consentLink.setAttribute('href', '#consent');
     consentLink.addEventListener('click', (e) => {
       e.preventDefault();
       if (window.OneTrust && typeof window.OneTrust.ToggleInfoDisplay === 'function') {
