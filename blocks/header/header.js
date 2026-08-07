@@ -165,11 +165,14 @@ function toggleMobileMenu(nav, force) {
  * @param {Element} block The header block element
  */
 export default async function decorate(block) {
-  // load nav fragment: localhost / aem up first, then DA/EDS production
+  // load nav fragment. The nav doc is served at the site root as /nav.plain.html
+  // on BOTH the local dev server and the aem.page/aem.live preview+live tiers,
+  // so try the metadata-configured path (default /nav) first. Only fall back to
+  // the /content-prefixed path for local setups that nest content there.
   const navMeta = getMetadata('nav');
   const navPath = navMeta ? new URL(navMeta, window.location).pathname : '/nav';
-  let fragment = await loadFragment('/content/nav');
-  if (!fragment) fragment = await loadFragment(navPath);
+  let fragment = await loadFragment(navPath);
+  if (!fragment) fragment = await loadFragment('/content/nav');
 
   block.textContent = '';
   const nav = document.createElement('nav');
