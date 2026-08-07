@@ -43,7 +43,10 @@ function openPanel(li, nav) {
  * @param {Element} nav
  */
 function decorateMegaMenu(li, nav) {
-  const link = li.querySelector(':scope > a');
+  // The nav fragment renders one way locally (link is a direct child of <li>)
+  // and another when served from DA/EDS (each link wrapped in a <p>). Accept
+  // both so the trigger is always found.
+  const link = li.querySelector(':scope > a, :scope > p > a');
   const panelList = li.querySelector(':scope > ul');
   if (!link || !panelList) return; // plain link, no panel
 
@@ -179,6 +182,17 @@ export default async function decorate(block) {
   nav.id = 'nav';
   nav.setAttribute('aria-expanded', 'false');
   while (fragment.firstElementChild) nav.append(fragment.firstElementChild);
+
+  // Normalize DOM shape: when served from DA/EDS, each list link is wrapped in
+  // a <p> (markdown paragraph). Locally the link is a direct child of <li>.
+  // Unwrap any <li> > <p> that contains only a single link so downstream
+  // selectors (and the desktop/mobile builders) see one consistent structure.
+  nav.querySelectorAll('li > p').forEach((p) => {
+    if (p.children.length === 1 && p.firstElementChild.tagName === 'A'
+      && p.textContent.trim() === p.firstElementChild.textContent.trim()) {
+      p.replaceWith(p.firstElementChild);
+    }
+  });
 
   // label the three fragment sections
   const classes = ['brand', 'sections', 'tools'];
