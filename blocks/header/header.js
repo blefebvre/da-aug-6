@@ -242,8 +242,21 @@ export default async function decorate(block) {
   // tools: Locations link + language selector
   const navTools = nav.querySelector('.nav-tools');
   if (navTools) {
-    const locations = navTools.querySelector('p a, a');
-    if (locations) locations.classList.add('nav-locations');
+    // The fragment nests both items inside a .default-content-wrapper (and wraps
+    // the Locations link in its own <p>). Hoist everything to be a direct child
+    // of .nav-tools and drop the wrapping <p> so the flex row lays Locations and
+    // the language selector out inline (they otherwise stack as block elements).
+    const wrapper = navTools.querySelector('.default-content-wrapper');
+    if (wrapper) {
+      while (wrapper.firstElementChild) navTools.append(wrapper.firstElementChild);
+      wrapper.remove();
+    }
+    const locations = navTools.querySelector('a');
+    if (locations) {
+      locations.classList.add('nav-locations');
+      const p = locations.closest('p');
+      if (p && p.parentElement === navTools) p.replaceWith(locations);
+    }
     decorateLanguage(navTools);
   }
 
@@ -275,39 +288,8 @@ export default async function decorate(block) {
   navWrapper.append(nav);
   block.append(navWrapper);
 
-  // Sticky-on-scroll: transparent over the hero at rest, solid teal once
-  // scrolled. Driven by an IntersectionObserver on a zero-height sentinel at
-  // the very top of the document — this is robust to which element actually
-  // scrolls (window, documentElement, or body). A plain window 'scroll'
-  // listener is unreliable here: in the EDS/DA preview iframe the scroller is
-  // document.body and no scroll event reaches window, so the class never
-  // toggled. The observer fires regardless of the scroller.
-  const setSticky = (on) => navWrapper.classList.toggle('nav-sticky', on);
-  const sentinel = document.createElement('div');
-  sentinel.className = 'nav-sticky-sentinel';
-  sentinel.setAttribute('aria-hidden', 'true');
-  // Place the sentinel at the very top of the main content flow so it leaves
-  // the viewport as soon as the page scrolls, regardless of the scroller.
-  const main = document.querySelector('main');
-  if (main) main.prepend(sentinel);
-  else block.parentElement.insertBefore(sentinel, block);
-  if ('IntersectionObserver' in window) {
-    const io = new IntersectionObserver(
-      ([entry]) => setSticky(!entry.isIntersecting),
-      { rootMargin: '-10px 0px 0px 0px', threshold: 0 },
-    );
-    io.observe(sentinel);
-  } else {
-    // Fallback: read whichever scroller is live and listen broadly.
-    const applySticky = () => {
-      const y = window.scrollY || document.documentElement.scrollTop
-        || document.body.scrollTop || 0;
-      setSticky(y > 10);
-    };
-    applySticky();
-    window.addEventListener('scroll', applySticky, { passive: true, capture: true });
-    document.addEventListener('scroll', applySticky, { passive: true, capture: true });
-  }
+  // The bar is a solid teal sticky element at all scroll positions (handled in
+  // CSS via `position: sticky`), so no scroll observer is needed here.
 
   // reset state cleanly when crossing the desktop/mobile breakpoint
   isDesktop.addEventListener('change', () => {

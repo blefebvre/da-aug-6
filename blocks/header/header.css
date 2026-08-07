@@ -1,9 +1,10 @@
 /*
  * Atlas Copco Group header.
- * Default: transparent, absolute, 96px, overlays the hero; white nav text.
- * Sticky (on scroll): fixed, 80px, solid teal (#054E5A); text stays white.
- * Desktop: 6 primary items each open a mega-menu panel.
- * Mobile: full-width slide-in drawer (built in header.js) — mobile phase.
+ * A solid teal (#054E5A) bar at ALL scroll positions (matches the source —
+ * NOT a transparent overlay). Sticks to the top of the viewport on scroll and
+ * reserves its own height, so the hero begins below it. White nav text.
+ * Desktop: 6 primary items each open a mega-menu panel; Locations + language
+ * sit inline on the right behind a divider. Mobile: full-width slide-in drawer.
  */
 
 /* Link/hover selectors intentionally interleave with structural rules; the
@@ -12,37 +13,24 @@
 
 /* ---- header shell ---- */
 
-/* The boilerplate reserves `header { height: var(--nav-height) }`, which would
-   push the hero down and break the transparent overlay. Collapse it so the
-   absolutely-positioned nav-wrapper floats over the hero instead. The `body >`
-   prefix raises specificity above the boilerplate's bare `header` rule. */
+/* The header reserves exactly the nav's height (96px) so the hero begins right
+   below the fixed bar. `position: sticky` is unreliable here: in the EDS/DA
+   preview the scroller is <body> and the wrapper's containing block is this
+   short <header>, so a sticky wrapper scrolls away. A fixed bar + a header that
+   reserves its height pins correctly regardless of which element scrolls. */
 body > header {
-  height: 0;
+  height: 96px;
   min-height: 0;
 }
 
-/* zero-height scroll sentinel (top of main); drives the sticky observer */
-.nav-sticky-sentinel {
-  position: absolute;
+/* Solid teal bar, always. Fixed to the top of the viewport so it stays pinned
+   as the page scrolls (matches the source — never a transparent overlay). */
+header .nav-wrapper {
+  position: fixed;
   top: 0;
   left: 0;
-  width: 1px;
-  height: 1px;
-  pointer-events: none;
-  visibility: hidden;
-}
-
-header .nav-wrapper {
-  position: absolute;
-  inset: 0 0 auto;
   width: 100%;
   z-index: 20;
-  background-color: transparent;
-  transition: background-color 0.2s ease;
-}
-
-header .nav-wrapper.nav-sticky {
-  position: fixed;
   background-color: var(--brand-teal); /* #054E5A */
   box-shadow: 0 1px 8px rgb(0 0 0 / 15%);
 }
@@ -57,11 +45,6 @@ header nav {
   margin: 0 auto;
   padding: 0 30px;
   font-family: var(--body-font-family);
-  transition: height 0.2s ease;
-}
-
-header .nav-wrapper.nav-sticky nav {
-  height: 80px;
 }
 
 header nav a:any-link {
@@ -89,11 +72,13 @@ header .nav-brand img {
 /* ---- primary nav ---- */
 header .nav-sections {
   flex: 1 1 auto;
+  min-width: 0;
 }
 
 header .nav-primary {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 28px;
   list-style: none;
   margin: 0;
@@ -260,23 +245,30 @@ header .nav-megamenu ul ul a:hover {
   text-decoration: underline;
 }
 
-/* ---- utility cluster (Locations + language) ---- */
+/* ---- utility cluster (Locations + language) ----
+   Sits inline on the right, fixed to its content width, behind a vertical
+   divider (matches the source). `white-space: nowrap` keeps each label on one
+   line; `flex: 0 0 auto` prevents the earlier collapse-and-stack. */
 header .nav-tools {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
   margin-left: auto;
+  padding-left: 24px;
+  border-left: 1px solid rgb(255 255 255 / 35%);
+  white-space: nowrap;
 }
 
 header .nav-tools .nav-locations {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px;
-  border-radius: 4px;
+  padding: 0;
   font-size: 14px;
   font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   color: #fff;
   text-decoration: none;
 }
@@ -287,21 +279,38 @@ header .nav-tools .nav-locations:hover {
 
 header .nav-tools .nav-lang {
   position: relative;
+  display: inline-flex;
+  align-items: center;
 }
 
 header .nav-tools .nav-lang-trigger {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   margin: 0;
   border: 0;
   background: none;
-  padding: 8px;
+  padding: 0;
   font-family: var(--body-font-family);
   font-size: 14px;
   font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   color: #fff;
   cursor: pointer;
+}
+
+/* globe icon after the language label (white knockout via mask) */
+header .nav-tools .nav-lang-trigger::after {
+  content: "";
+  width: 18px;
+  height: 18px;
+  background-color: currentcolor;
+  mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="4.5" y1="7" x2="19.5" y2="7"/><line x1="4.5" y1="17" x2="19.5" y2="17"/></svg>') center / contain no-repeat;
+
+  /* Safari still needs the prefixed mask for the knockout globe. */
+  /* stylelint-disable-next-line property-no-vendor-prefix */
+  -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="4.5" y1="7" x2="19.5" y2="7"/><line x1="4.5" y1="17" x2="19.5" y2="17"/></svg>') center / contain no-repeat;
 }
 
 header .nav-tools .nav-lang-menu {
@@ -349,15 +358,18 @@ header .nav-hamburger {
    - Locations + English render as full-width 44px rows at the drawer bottom.
    ===================================================================== */
 @media (width < 900px) {
-  /* header bar: always solid teal + fixed on mobile */
-  header .nav-wrapper,
-  header .nav-wrapper.nav-sticky {
+  /* header bar is 80px on mobile; keep the reserved header height in sync */
+  body > header {
+    height: 80px;
+  }
+
+  /* header bar: solid teal + fixed on mobile so the drawer can cover the page */
+  header .nav-wrapper {
     position: fixed;
     background-color: var(--brand-teal);
   }
 
-  header nav,
-  header .nav-wrapper.nav-sticky nav {
+  header nav {
     height: 80px;
     padding: 0 16px;
     gap: 0;
@@ -554,6 +566,8 @@ header .nav-hamburger {
     align-items: stretch;
     gap: 0;
     margin: 0;
+    padding-left: 0; /* reset desktop divider inset */
+    border-left: 0;
     background: #fff;
     border-top: 1px solid var(--brand-grey-bg-2);
   }
@@ -568,6 +582,8 @@ header .nav-hamburger {
     height: 44px;
     padding: 0 16px;
     border-radius: 0;
+    text-transform: none;
+    letter-spacing: normal;
     color: var(--brand-teal);
     border-bottom: 1px solid var(--brand-grey-bg-2);
   }
@@ -582,7 +598,14 @@ header .nav-hamburger {
     height: 44px;
     justify-content: flex-start;
     padding: 0 16px;
+    text-transform: none;
+    letter-spacing: normal;
     color: var(--brand-teal);
+  }
+
+  /* no globe icon in the mobile drawer language row */
+  header .nav-tools .nav-lang-trigger::after {
+    content: none;
   }
 
   header .nav-tools .nav-lang-menu {
