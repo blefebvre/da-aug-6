@@ -21,6 +21,17 @@ body > header {
   min-height: 0;
 }
 
+/* zero-height scroll sentinel (top of main); drives the sticky observer */
+.nav-sticky-sentinel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+  visibility: hidden;
+}
+
 header .nav-wrapper {
   position: absolute;
   inset: 0 0 auto;

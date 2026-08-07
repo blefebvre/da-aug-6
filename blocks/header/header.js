@@ -275,13 +275,39 @@ export default async function decorate(block) {
   navWrapper.append(nav);
   block.append(navWrapper);
 
-  // sticky-on-scroll: transparent over the hero at top, solid teal once scrolled
-  const applySticky = () => {
-    if (window.scrollY > 10) navWrapper.classList.add('nav-sticky');
-    else navWrapper.classList.remove('nav-sticky');
-  };
-  applySticky();
-  window.addEventListener('scroll', applySticky, { passive: true });
+  // Sticky-on-scroll: transparent over the hero at rest, solid teal once
+  // scrolled. Driven by an IntersectionObserver on a zero-height sentinel at
+  // the very top of the document — this is robust to which element actually
+  // scrolls (window, documentElement, or body). A plain window 'scroll'
+  // listener is unreliable here: in the EDS/DA preview iframe the scroller is
+  // document.body and no scroll event reaches window, so the class never
+  // toggled. The observer fires regardless of the scroller.
+  const setSticky = (on) => navWrapper.classList.toggle('nav-sticky', on);
+  const sentinel = document.createElement('div');
+  sentinel.className = 'nav-sticky-sentinel';
+  sentinel.setAttribute('aria-hidden', 'true');
+  // Place the sentinel at the very top of the main content flow so it leaves
+  // the viewport as soon as the page scrolls, regardless of the scroller.
+  const main = document.querySelector('main');
+  if (main) main.prepend(sentinel);
+  else block.parentElement.insertBefore(sentinel, block);
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(
+      ([entry]) => setSticky(!entry.isIntersecting),
+      { rootMargin: '-10px 0px 0px 0px', threshold: 0 },
+    );
+    io.observe(sentinel);
+  } else {
+    // Fallback: read whichever scroller is live and listen broadly.
+    const applySticky = () => {
+      const y = window.scrollY || document.documentElement.scrollTop
+        || document.body.scrollTop || 0;
+      setSticky(y > 10);
+    };
+    applySticky();
+    window.addEventListener('scroll', applySticky, { passive: true, capture: true });
+    document.addEventListener('scroll', applySticky, { passive: true, capture: true });
+  }
 
   // reset state cleanly when crossing the desktop/mobile breakpoint
   isDesktop.addEventListener('change', () => {
