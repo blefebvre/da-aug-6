@@ -1,272 +1,371 @@
-/* header and nav layout */
+/*
+ * Atlas Copco Group header.
+ * Default: transparent, absolute, 96px, overlays the hero; white nav text.
+ * Sticky (on scroll): fixed, 80px, solid teal (#054E5A); text stays white.
+ * Desktop: 6 primary items each open a mega-menu panel.
+ * Mobile: full-width slide-in drawer (built in header.js) — mobile phase.
+ */
+
+/* Link/hover selectors intentionally interleave with structural rules; the
+   cascade here is by design (panel links vs top-level links are separate). */
+/* stylelint-disable no-descending-specificity */
+
+/* ---- header shell ---- */
+
+/* The boilerplate reserves `header { height: var(--nav-height) }`, which would
+   push the hero down and break the transparent overlay. Collapse it so the
+   absolutely-positioned nav-wrapper floats over the hero instead. The `body >`
+   prefix raises specificity above the boilerplate's bare `header` rule. */
+body > header {
+  height: 0;
+  min-height: 0;
+}
+
 header .nav-wrapper {
-  background-color: var(--background-color);
+  position: absolute;
+  inset: 0 0 auto;
   width: 100%;
-  z-index: 2;
+  z-index: 20;
+  background-color: transparent;
+  transition: background-color 0.2s ease;
+}
+
+header .nav-wrapper.nav-sticky {
   position: fixed;
+  background-color: var(--brand-teal); /* #054E5A */
+  box-shadow: 0 1px 8px rgb(0 0 0 / 15%);
 }
 
 header nav {
   box-sizing: border-box;
-  display: grid;
-  grid-template:
-    'hamburger brand tools' var(--nav-height)
-    'sections sections sections' 1fr / auto 1fr auto;
+  display: flex;
   align-items: center;
-  gap: 0 24px;
-  margin: auto;
-  max-width: 1248px;
-  height: var(--nav-height);
-  padding: 0 24px;
+  gap: 24px;
+  height: 96px;
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 0 30px;
   font-family: var(--body-font-family);
+  transition: height 0.2s ease;
 }
 
-header nav[aria-expanded='true'] {
-  grid-template:
-    'hamburger brand' var(--nav-height)
-    'sections sections' 1fr
-    'tools tools' var(--nav-height) / auto 1fr;
-  overflow-y: auto;
-  min-height: 100dvh;
-}
-
-@media (width >= 900px) {
-  header .nav-wrapper {
-    position: relative;
-  }
-
-  header nav {
-    display: flex;
-    justify-content: space-between;
-    gap: 0 32px;
-    max-width: 1264px;
-    padding: 0 32px;
-  }
-
-  header nav[aria-expanded='true'] {
-    min-height: 0;
-    overflow: visible;
-  }
-}
-
-header nav p {
-  margin: 0;
-  line-height: 1;
+header .nav-wrapper.nav-sticky nav {
+  height: 80px;
 }
 
 header nav a:any-link {
   color: currentcolor;
 }
 
-/* hamburger */
-header nav .nav-hamburger {
-  grid-area: hamburger;
-  height: 22px;
+/* ---- brand / logo ---- */
+header .nav-brand {
   display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+header .nav-brand a {
+  display: inline-flex;
   align-items: center;
 }
 
-header nav .nav-hamburger button {
-  height: 22px;
-  margin: 0;
-  border: 0;
-  border-radius: 0;
-  padding: 0;
-  background-color: var(--background-color);
-  color: inherit;
-  overflow: initial;
-  text-overflow: initial;
-  white-space: initial;
-}
-
-header nav .nav-hamburger-icon,
-header nav .nav-hamburger-icon::before,
-header nav .nav-hamburger-icon::after {
-  box-sizing: border-box;
+header .nav-brand img {
+  width: 164px;
+  height: auto;
   display: block;
-  position: relative;
-  width: 20px;
 }
 
-header nav .nav-hamburger-icon::before,
-header nav .nav-hamburger-icon::after {
-  content: '';
-  position: absolute;
-  background: currentcolor;
+/* ---- primary nav ---- */
+header .nav-sections {
+  flex: 1 1 auto;
 }
 
-header nav[aria-expanded='false'] .nav-hamburger-icon,
-header nav[aria-expanded='false'] .nav-hamburger-icon::before,
-header nav[aria-expanded='false'] .nav-hamburger-icon::after {
-  height: 2px;
-  border-radius: 2px;
-  background: currentcolor;
+header .nav-primary {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-header nav[aria-expanded='false'] .nav-hamburger-icon::before {
-  top: -6px;
+header .nav-primary > li {
+  position: static;
 }
 
-header nav[aria-expanded='false'] .nav-hamburger-icon::after {
-  top: 6px;
+header .nav-primary > li > a,
+header .nav-primary > li > .nav-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--body-font-family);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: #fff;
+  text-decoration: none;
+  text-transform: none;
+  letter-spacing: normal;
+  cursor: pointer;
 }
 
-header nav[aria-expanded='true'] .nav-hamburger-icon {
-  height: 22px;
+header .nav-primary > li > a:hover,
+header .nav-primary > li > .nav-trigger:hover,
+header .nav-primary > li > .nav-trigger[aria-expanded="true"] {
+  text-decoration: underline;
+  text-underline-offset: 6px;
 }
 
-header nav[aria-expanded='true'] .nav-hamburger-icon::before,
-header nav[aria-expanded='true'] .nav-hamburger-icon::after {
-  top: 3px;
-  left: 1px;
+/* dropdown caret on items that open a panel */
+header .nav-trigger .nav-caret {
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid currentcolor;
+  border-bottom: 2px solid currentcolor;
   transform: rotate(45deg);
-  transform-origin: 2px 1px;
-  width: 24px;
-  height: 2px;
-  border-radius: 2px;
+  margin-top: -3px;
+  transition: transform 0.2s ease;
 }
 
-header nav[aria-expanded='true'] .nav-hamburger-icon::after {
-  top: unset;
-  bottom: 3px;
-  transform: rotate(-45deg);
+header .nav-trigger[aria-expanded="true"] .nav-caret {
+  transform: rotate(-135deg);
+  margin-top: 3px;
 }
 
-@media (width >= 900px) {
-  header nav .nav-hamburger {
-    display: none;
-    visibility: hidden;
-  }
+/* ---- mega-menu panel (full-bleed under the header) ---- */
+header .nav-megamenu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  display: none;
+  background-color: #fff;
+  color: var(--text-color);
+  box-shadow: 0 12px 24px rgb(0 0 0 / 15%);
+  z-index: 30;
 }
 
-/* brand */
-header .nav-brand {
-  grid-area: brand;
-  flex-basis: 128px;
-  font-size: var(--heading-font-size-s);
-  font-weight: 700;
+header .nav-primary > li.nav-open .nav-megamenu {
+  display: block;
+}
+
+header .nav-megamenu-inner {
+  position: relative;
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 56px 30px 48px;
+  min-height: 320px;
+}
+
+/* close button top-right of the panel */
+header .nav-megamenu-close {
+  position: absolute;
+  top: 16px;
+  right: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: none;
+  padding: 8px;
+  font-family: var(--body-font-family);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--brand-teal);
+  cursor: pointer;
+}
+
+header .nav-megamenu-close::after {
+  content: "\00d7";
+  font-size: 20px;
   line-height: 1;
 }
 
-header nav .nav-brand img {
-  width: 128px;
-  height: auto;
+header .nav-megamenu-close:hover {
+  text-decoration: underline;
 }
 
-/* sections */
-header nav .nav-sections {
-  grid-area: sections;
-  flex: 1 1 auto;
-  display: none;
-  visibility: hidden;
-}
-
-header nav[aria-expanded='true'] .nav-sections {
-  display: block;
-  visibility: visible;
-  align-self: start;
-}
-
-header nav .nav-sections ul {
+/* grouped column layout inside a panel */
+header .nav-megamenu ul {
   list-style: none;
-  padding-left: 0;
-  font-size: var(--body-font-size-s);
+  margin: 0;
+  padding: 0;
 }
 
-header nav .nav-sections ul > li {
-  font-weight: 500;
+header .nav-megamenu-inner > ul {
+  column-count: 4;
+  column-gap: 32px;
 }
 
-header nav .nav-sections ul > li > ul {
-  margin-top: 0;
+header .nav-megamenu-inner > ul > li {
+  break-inside: avoid;
+  margin-bottom: 24px;
 }
 
-header nav .nav-sections ul > li > ul > li {
+/* first-level item = group heading */
+header .nav-megamenu-inner > ul > li > a {
+  display: block;
+  font-family: var(--heading-font-family);
+  font-size: 18px;
   font-weight: 400;
+  color: var(--brand-teal);
+  text-decoration: none;
+  margin-bottom: 8px;
 }
 
-@media (width >= 900px) {
-  header nav .nav-sections {
-    display: block;
-    visibility: visible;
-    white-space: nowrap;
+header .nav-megamenu-inner > ul > li > a:hover {
+  text-decoration: underline;
+}
+
+/* second-level children */
+header .nav-megamenu ul ul {
+  margin-top: 4px;
+}
+
+header .nav-megamenu ul ul a {
+  display: block;
+  font-family: var(--body-font-family);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--text-color);
+  text-decoration: none;
+  padding: 3px 0;
+}
+
+header .nav-megamenu ul ul a:hover {
+  color: var(--brand-teal);
+  text-decoration: underline;
+}
+
+/* ---- utility cluster (Locations + language) ---- */
+header .nav-tools {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+}
+
+header .nav-tools .nav-locations {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+}
+
+header .nav-tools .nav-locations:hover {
+  text-decoration: underline;
+}
+
+header .nav-tools .nav-lang {
+  position: relative;
+}
+
+header .nav-tools .nav-lang-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  border: 0;
+  background: none;
+  padding: 8px;
+  font-family: var(--body-font-family);
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+}
+
+header .nav-tools .nav-lang-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  display: none;
+  min-width: 140px;
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+  background: #fff;
+  box-shadow: 0 8px 16px rgb(0 0 0 / 15%);
+  z-index: 30;
+}
+
+header .nav-tools .nav-lang.nav-open .nav-lang-menu {
+  display: block;
+}
+
+header .nav-tools .nav-lang-menu a {
+  display: block;
+  padding: 8px 16px;
+  font-size: 14px;
+  color: var(--text-color);
+  text-decoration: none;
+}
+
+header .nav-tools .nav-lang-menu a:hover {
+  background: var(--brand-grey-bg);
+}
+
+/* ---- mobile trigger (hidden on desktop; wired up in mobile phase) ---- */
+header .nav-hamburger {
+  display: none;
+}
+
+/* =====================================================================
+   MOBILE — below 900px. Baseline that hides desktop rows and shows the
+   "Menu" trigger so the header is never broken between phases. Full
+   drawer behaviour lands in the mobile phase.
+   ===================================================================== */
+@media (width < 900px) {
+  header nav,
+  header .nav-wrapper.nav-sticky nav {
+    height: 80px;
+    padding: 0 16px;
   }
 
-  header nav[aria-expanded='true'] .nav-sections {
-    align-self: unset;
+  header .nav-wrapper {
+    position: fixed;
+    background-color: var(--brand-teal);
   }
 
-  header nav .nav-sections .nav-drop {
-    position: relative;
-    padding-right: 16px;
+  header .nav-brand img {
+    width: 120px;
+  }
+
+  header .nav-hamburger {
+    display: inline-flex;
+    align-items: center;
+    margin-left: auto;
+    order: 3;
+  }
+
+  header .nav-hamburger button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    border: 0;
+    background: none;
+    padding: 0;
+    font-family: var(--body-font-family);
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
     cursor: pointer;
   }
 
-  header nav .nav-sections .nav-drop::after {
-    content: '';
-    display: inline-block;
-    position: absolute;
-    top: 0.5em;
-    right: 2px;
-    transform: rotate(135deg);
-    width: 6px;
-    height: 6px;
-    border: 2px solid currentcolor;
-    border-radius: 0 1px 0 0;
-    border-width: 2px 2px 0 0;
-  }
-
-  header nav .nav-sections .nav-drop[aria-expanded='true']::after {
-    top: unset;
-    bottom: 0.5em;
-    transform: rotate(315deg);
-  }
-
-  header nav .nav-sections ul {
-    display: flex;
-    gap: 24px;
-    margin: 0;
-  }
-
-  header nav .nav-sections .default-content-wrapper > ul > li {
-    flex: 0 1 auto;
-    position: relative;
-  }
-
-  header nav .nav-sections .default-content-wrapper > ul > li > ul {
+  header .nav-sections,
+  header .nav-tools {
     display: none;
-    position: relative;
   }
-
-  header nav .nav-sections .default-content-wrapper > ul > li[aria-expanded='true'] > ul {
-    display: block;
-    position: absolute;
-    left: -24px;
-    width: 200px;
-    top: 150%;
-    padding: 16px;
-    background-color: var(--light-color);
-    white-space: initial;
-  }
-
-  header nav .nav-sections .default-content-wrapper > ul > li > ul::before {
-    content: '';
-    position: absolute;
-    top: -8px;
-    left: 16px;
-    width: 0;
-    height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-bottom: 8px solid var(--light-color);
-  }
-
-  header nav .nav-sections .default-content-wrapper > ul > li > ul > li {
-    padding: 8px 0;
-  }
-}
-
-/* tools */
-header nav .nav-tools {
-  grid-area: tools;
 }
