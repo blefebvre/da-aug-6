@@ -1,27 +1,100 @@
+/*
+ * cards-news — "Recent press releases" list.
+ * Values measured from atlascopcogroup.com/en @1440 (source of truth).
+ * Sits on the default WHITE section background. No images.
+ * Each entry is a grey (#f3f6f7) tile: date, serif teal title, grey teaser,
+ * and a row of bordered uppercase tag chips. The source reorders the parts
+ * with flex `order` (DOM order is title, date, tags, description).
+ */
+
+/* --- Grid: mobile-first 1 col -> 2 col; gap 24px (source: 678px x2). --- */
 .cards-news > ul {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(257px, 1fr));
+  grid-template-columns: 1fr;
   gap: 24px;
 }
 
+@media (width >= 900px) {
+  .cards-news > ul {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* --- Entry tile: light grey surface, 24px padding, no border/radius/shadow. --- */
 .cards-news > ul > li {
-  border: 1px solid #dadada;
-  background-color: var(--background-color);
+  background-color: var(--brand-grey-bg);
+  padding: 24px;
 }
 
+/* --- Card body: flex column, 12px base rhythm. Visual order (via flex order):
+       date -> title -> description -> tags. --- */
 .cards-news .cards-news-card-body {
-  margin: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.cards-news .cards-news-card-image {
-  line-height: 0;
+.cards-news .cards-news-card-body > * {
+  margin: 0;
 }
 
-.cards-news > ul > li img {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
+/* --- Date: teal Noto Sans 16/24, semibold, tracked. (order 0) --- */
+.cards-news .cards-news-date {
+  order: 0;
+  font-family: var(--body-font-family);
+  font-size: var(--body-font-size-s);
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: 1px;
+  color: var(--brand-teal);
+}
+
+/* --- Title: teal Noto Serif 24 / 31.92, weight 600, tight tracking.
+       Overrides the global h3 (32/48, weight 400).
+       Extra 12px top => 24px visual gap after date (12 gap + 12 margin). --- */
+.cards-news .cards-news-title {
+  order: 1;
+  margin-top: 12px;
+  font-family: var(--heading-font-family);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 31.92px;
+  letter-spacing: -0.48px;
+  color: var(--brand-teal);
+}
+
+/* --- Description: grey Noto Sans 18 / 1.8. (order 2) --- */
+.cards-news .cards-news-description {
+  order: 2;
+  font-family: var(--body-font-family);
+  font-size: var(--body-font-size-m);
+  font-weight: 400;
+  line-height: 1.8;
+  color: var(--text-color);
+}
+
+/* --- Tags: wrapping row of bordered uppercase chips, 8px apart.
+       Extra 12px top => 24px visual gap after description. (order 3) --- */
+.cards-news .cards-news-tags {
+  order: 3;
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cards-news .cards-news-tag {
+  padding: 4px 12px;
+  border: 1px solid var(--brand-teal);
+  border-radius: 4px;
+  font-family: var(--body-font-family);
+  font-size: var(--body-font-size-s);
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--brand-teal);
 }

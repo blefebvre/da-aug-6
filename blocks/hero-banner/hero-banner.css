@@ -230,7 +230,7 @@ main .section.filled-gold.hero-banner-container {
 /* ======================= tablet / desktop ======================= */
 @media (width >= 900px) {
   .hero-banner {
-    min-height: 640px;
+    min-height: 662px;
   }
 
   .hero-banner > div:last-child {

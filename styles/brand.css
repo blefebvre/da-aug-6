@@ -33,26 +33,40 @@
   --body-font-size-xs: 14px;
   --body-line-height: 1.2;      /* 21.6px on 18px */
 
-  /* Heading sizes (desktop, measured) */
-  --heading-font-size-xxl: 56px; /* h1 */
-  --heading-font-size-xl: 32px;  /* h2 */
-  --heading-font-size-l: 32px;   /* h3 */
-  --heading-font-size-m: 28px;
-  --heading-font-size-s: 24px;
-  --heading-font-size-xs: 20px;
+  /* Heading sizes — MOBILE-first (measured at 390px). Desktop values in the
+     >=900px block below. */
+  --heading-font-size-xxl: 36px; /* h1 mobile */
+  --heading-font-size-xl: 28px;  /* h2 mobile */
+  --heading-font-size-l: 24px;   /* h3 mobile */
+  --heading-font-size-m: 22px;
+  --heading-font-size-s: 20px;
+  --heading-font-size-xs: 18px;
 
-  /* Heading line-heights */
-  --heading-line-height-xxl: 63.84px; /* h1 */
-  --heading-line-height-xl: 48px;     /* h2 */
-  --heading-line-height-l: 48px;      /* h3 */
+  /* Heading line-heights — mobile */
+  --heading-line-height-xxl: 47.88px; /* h1 mobile (36 * 1.33) */
+  --heading-line-height-xl: 39.2px;   /* h2 mobile */
+  --heading-line-height-l: 31.92px;   /* h3 mobile */
 
   /* Layout */
   --nav-height: 72px;
-  --section-max-width: 1200px;
+  --section-max-width: 1380px; /* source inner content width at 1440 viewport (30px gutters) */
 }
 
 @media (width >= 900px) {
   :root {
     --body-font-size-m: 18px;
+
+    /* Heading sizes — DESKTOP (measured at 1440px) */
+    --heading-font-size-xxl: 56px; /* h1 */
+    --heading-font-size-xl: 32px;  /* h2 */
+    --heading-font-size-l: 32px;   /* h3 */
+    --heading-font-size-m: 28px;
+    --heading-font-size-s: 24px;
+    --heading-font-size-xs: 20px;
+
+    /* Heading line-heights — desktop */
+    --heading-line-height-xxl: 63.84px; /* h1 */
+    --heading-line-height-xl: 48px;     /* h2 */
+    --heading-line-height-l: 48px;      /* h3 */
   }
 }

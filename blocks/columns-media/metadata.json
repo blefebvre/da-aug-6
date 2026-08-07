@@ -17,7 +17,13 @@
   "contentPattern": {
     "structure": "image + (label + heading + description + CTA) side-by-side",
     "buttonCount": 1,
-    "imageCount": 1
+    "imageCount": 1,
+    "variants": {
+      "columns-media-promo": "large H2 headline + gradient pill CTA (auto: text contains an h2)",
+      "columns-media-quote": "pull-quote H3 + bold attribution + outlined CTA (auto: text starts with a heading and contains <strong>); portrait floats top-left",
+      "columns-media-teaser": "label + H3 + description + arrow text-link CTA (default)",
+      "columns-media-reversed": "flips image to the left (auto: 'reversed' in name, quote variant, or alternating instances in a shared section)"
+    }
   },
   "reuseGuidance": {
     "suitableFor": [

@@ -1,33 +1,279 @@
+/* columns-media — media + text bands migrated from atlascopcogroup.com/en.
+   Values measured from source computed styles @ 1440x900 (see
+   migration-work/columns-media-extracted.css). Mobile-first: image stacks
+   above text; the two-column layout kicks in at >=900px. */
+
+/* ---------------------------------------------------------------- layout */
 .columns-media > div {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.columns-media-img-col {
+  order: 0; /* image above text on mobile */
+}
+
+.columns-media-text-col {
+  order: 1;
   display: flex;
   flex-direction: column;
 }
 
-.columns-media img {
-  width: 100%;
-}
-
-.columns-media > div > div {
-  order: 1;
-}
-
-.columns-media > div > .columns-media-img-col {
-  order: 0;
-}
-
-.columns-media > div > .columns-media-img-col img {
+/* ---------------------------------------------------------------- image */
+.columns-media-img-col picture {
   display: block;
 }
 
+.columns-media-img-col img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 24px 24px 24px 0; /* source: rounded except bottom-left */
+}
+
+/* ------------------------------------------------------- text: spacing */
+
+/* Zero the boilerplate heading/paragraph margins, then set explicit gaps
+   that match the source rhythm (label->heading 12px, everything else 24px). */
+.columns-media-text-col > * {
+  margin: 0;
+}
+
+.columns-media-text-col > * + * {
+  margin-top: 24px;
+}
+
+.columns-media-text-col > p:first-child + * {
+  margin-top: 12px; /* tighten label -> heading */
+}
+
+/* ------------------------------------------------------ text: body copy */
+
+/* Base body copy first (lowest specificity), then variant/label overrides —
+   ordered by ascending specificity so higher-specificity rules win by both
+   cascade and source order. */
+.columns-media-text-col p {
+  font-family: var(--body-font-family);
+  font-size: 18px;
+  line-height: 32.4px;
+  font-weight: 400;
+  color: var(--text-color); /* #3E3F41 */
+}
+
+/* promo body copy is larger */
+.columns-media-promo .columns-media-text-col h2 + p {
+  font-size: 24px;
+  line-height: 36px;
+}
+
+/* ---------------------------------------------------------- text: label */
+
+/* First paragraph in teaser/promo is the eyebrow label (quote has no label,
+   it starts with the heading, so this rule never matches there). */
+.columns-media-teaser .columns-media-text-col > p:first-child,
+.columns-media-promo .columns-media-text-col > p:first-child {
+  font-family: var(--body-font-family);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--brand-teal-dark); /* #04424D */
+}
+
+/* quote attribution: grey line, name in bold (authored <strong>) */
+.columns-media-quote .columns-media-text-col p strong {
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+/* ------------------------------------------------------- text: headings */
+.columns-media-text-col :is(h2, h3) {
+  font-family: var(--heading-font-family);
+  font-weight: 400;
+  color: var(--brand-teal); /* #054E5A */
+}
+
+/* teaser heading — mobile 24px / 31.92px (desktop 32/44 below) */
+.columns-media-teaser .columns-media-text-col h3 {
+  font-size: 24px;
+  line-height: 31.92px;
+}
+
+/* quote heading — mobile 20px / 32px pull-quote (desktop 28/44.8 below) */
+.columns-media-quote .columns-media-text-col h3 {
+  font-size: 20px;
+  line-height: 32px;
+}
+
+/* promo heading — mobile 28px / 39.2px (desktop 40/56 below) */
+.columns-media-promo .columns-media-text-col h2 {
+  font-size: 28px;
+  line-height: 39.2px;
+}
+
+/* --------------------------------------------------------------- CTAs */
+
+/* The CTA is always the last paragraph in the text column and holds a link.
+   Links here are NOT auto-buttonized (plain <p><a>), so we style them
+   directly to match the source. */
+
+/* teaser — underline-free teal/blue text link with a leading arrow */
+.columns-media-teaser .columns-media-text-col > p:last-child a:any-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--link-color); /* #1072B9 */
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 32.4px;
+  text-decoration: none;
+}
+
+.columns-media-teaser .columns-media-text-col > p:last-child a:any-link::before {
+  content: "\2192"; /* -> */
+  font-size: 18px;
+  line-height: 1;
+}
+
+.columns-media-teaser .columns-media-text-col > p:last-child a:hover {
+  color: var(--brand-teal);
+  text-decoration: none;
+}
+
+/* promo — filled gradient pill with a trailing arrow */
+.columns-media-promo .columns-media-text-col > p:last-child a:any-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 30px;
+  border-radius: 4px;
+  background-image: linear-gradient(135deg, rgb(26 131 119), rgb(5 67 94));
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+}
+
+.columns-media-promo .columns-media-text-col > p:last-child a:any-link::after {
+  content: "\2192"; /* -> */
+}
+
+.columns-media-promo .columns-media-text-col > p:last-child a:hover {
+  color: #fff;
+  text-decoration: none;
+  opacity: 0.92;
+}
+
+/* quote — outlined teal button */
+.columns-media-quote .columns-media-text-col > p:last-child a:any-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 30px;
+  border: 1px solid var(--brand-teal);
+  border-radius: 4px;
+  color: var(--brand-teal);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+}
+
+.columns-media-quote .columns-media-text-col > p:last-child a:hover {
+  background-color: var(--brand-teal);
+  color: #fff;
+  text-decoration: none;
+}
+
+/* -------------------------------------------------------- >=900px layout */
 @media (width >= 900px) {
-  .columns-media > div {
-    align-items: center;
-    flex-direction: unset;
-    gap: 24px;
+  /* headings scale up to the measured desktop sizes */
+  .columns-media-teaser .columns-media-text-col h3 {
+    font-size: 32px;
+    line-height: 44px;
   }
 
-  .columns-media > div > div {
-    flex: 1;
-    order: unset;
+  .columns-media-quote .columns-media-text-col h3 {
+    font-size: 28px;
+    line-height: 44.8px;
+  }
+
+  .columns-media-promo .columns-media-text-col h2 {
+    font-size: 40px;
+    line-height: 56px;
+  }
+
+  .columns-media > div {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 24px;
+    align-items: center;
+  }
+
+  /* default: text left, image right (authored order) */
+  .columns-media-text-col {
+    order: 0;
+  }
+
+  .columns-media-img-col {
+    order: 1;
+  }
+
+  /* reversed: image left, text right */
+  .columns-media-reversed .columns-media-text-col {
+    order: 1;
+  }
+
+  .columns-media-reversed .columns-media-img-col {
+    order: 0;
+  }
+
+  /* promo text column gets breathing room from the flush image edge */
+  .columns-media-promo .columns-media-text-col {
+    padding: 0 48px;
+  }
+
+  /* promo internal rhythm: heading->body 32px, body->CTA 56px */
+  .columns-media-promo .columns-media-text-col h2 + p {
+    margin-top: 32px;
+  }
+
+  .columns-media-promo .columns-media-text-col > p:last-child {
+    margin-top: 56px;
+  }
+
+  /* quote: a width-constrained pull-quote with the portrait floated top-left,
+     the quote text wrapping beside and below it (matches the source, where the
+     quote sits in a ~680px column rather than spanning full width). */
+  .columns-media-quote > div {
+    display: block;
+    max-width: 680px;
+  }
+
+  .columns-media-quote .columns-media-img-col {
+    float: left;
+    width: 220px;
+    margin: 0 32px 8px 0;
+  }
+
+  .columns-media-quote .columns-media-img-col img {
+    width: 220px;
+  }
+
+  /* block (not flex) so the text flows around the floated portrait */
+  .columns-media-quote .columns-media-text-col {
+    display: block;
+  }
+
+  /* re-apply the source spacing that the flex `> * + *` rule handled */
+  .columns-media-quote .columns-media-text-col > * + * {
+    margin-top: 24px;
   }
 }

@@ -1,6 +1,4 @@
-function updateActiveSlide(slide) {
-  const block = slide.closest('.carousel-stories');
-  const slideIndex = parseInt(slide.dataset.slideIndex, 10);
+function updateActiveSlide(block, slideIndex) {
   block.dataset.activeSlide = slideIndex;
 
   const slides = block.querySelectorAll('.carousel-stories-slide');
@@ -24,12 +22,17 @@ function updateActiveSlide(slide) {
       indicator.querySelector('button').setAttribute('disabled', 'true');
     }
   });
+
+  // Non-wrapping arrows: disable prev at the first slide, next at the last.
+  const prev = block.querySelector('.slide-prev');
+  const next = block.querySelector('.slide-next');
+  if (prev) prev.disabled = slideIndex <= 0;
+  if (next) next.disabled = slideIndex >= slides.length - 1;
 }
 
 export function showSlide(block, slideIndex = 0) {
   const slides = block.querySelectorAll('.carousel-stories-slide');
-  let realSlideIndex = slideIndex < 0 ? slides.length - 1 : slideIndex;
-  if (slideIndex >= slides.length) realSlideIndex = 0;
+  const realSlideIndex = Math.max(0, Math.min(slideIndex, slides.length - 1));
   const activeSlide = slides[realSlideIndex];
 
   activeSlide.querySelectorAll('a').forEach((link) => link.removeAttribute('tabindex'));
@@ -58,13 +61,24 @@ function bindEvents(block) {
     showSlide(block, parseInt(block.dataset.activeSlide, 10) + 1);
   });
 
-  const slideObserver = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) updateActiveSlide(entry.target);
+  // Track the leftmost visible card (multiple cards are visible at once, so
+  // scroll position — not per-slide intersection — determines "active").
+  const slidesEl = block.querySelector('.carousel-stories-slides');
+  const slides = block.querySelectorAll('.carousel-stories-slide');
+  let scrollTimer;
+  const syncActive = () => {
+    const { scrollLeft } = slidesEl;
+    let nearest = 0;
+    let min = Infinity;
+    slides.forEach((slide, idx) => {
+      const dist = Math.abs(slide.offsetLeft - scrollLeft);
+      if (dist < min) { min = dist; nearest = idx; }
     });
-  }, { threshold: 0.5 });
-  block.querySelectorAll('.carousel-stories-slide').forEach((slide) => {
-    slideObserver.observe(slide);
+    updateActiveSlide(block, nearest);
+  };
+  slidesEl.addEventListener('scroll', () => {
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(syncActive, 100);
   });
 }
 
@@ -102,45 +116,51 @@ export default async function decorate(block) {
 
   const slidesWrapper = document.createElement('ul');
   slidesWrapper.classList.add('carousel-stories-slides');
-  block.prepend(slidesWrapper);
-
-  let slideIndicators;
-  if (!isSingleSlide) {
-    const slideIndicatorsNav = document.createElement('nav');
-    slideIndicatorsNav.setAttribute('aria-label', 'Carousel Slide Controls');
-    slideIndicators = document.createElement('ol');
-    slideIndicators.classList.add('carousel-stories-slide-indicators');
-    slideIndicatorsNav.append(slideIndicators);
-    block.append(slideIndicatorsNav);
-
-    const slideNavButtons = document.createElement('div');
-    slideNavButtons.classList.add('carousel-stories-navigation-buttons');
-    slideNavButtons.innerHTML = `
-      <button type="button" class= "slide-prev" aria-label="Previous Slide"></button>
-      <button type="button" class="slide-next" aria-label="Next Slide"></button>
-    `;
-
-    container.append(slideNavButtons);
-  }
+  container.append(slidesWrapper);
 
   rows.forEach((row, idx) => {
     const slide = createSlide(row, idx, carouselId);
     slidesWrapper.append(slide);
+    row.remove();
+  });
 
-    if (slideIndicators) {
+  block.append(container);
+
+  if (!isSingleSlide) {
+    // Single control bar below the cards: prev arrow (left), dots (center),
+    // next arrow (right) — matches the source layout.
+    const controls = document.createElement('div');
+    controls.classList.add('carousel-stories-controls');
+
+    const prevButton = document.createElement('button');
+    prevButton.type = 'button';
+    prevButton.className = 'slide-prev';
+    prevButton.setAttribute('aria-label', 'Previous Slide');
+
+    const slideIndicatorsNav = document.createElement('nav');
+    slideIndicatorsNav.setAttribute('aria-label', 'Carousel Slide Controls');
+    const slideIndicators = document.createElement('ol');
+    slideIndicators.classList.add('carousel-stories-slide-indicators');
+    slideIndicatorsNav.append(slideIndicators);
+
+    const nextButton = document.createElement('button');
+    nextButton.type = 'button';
+    nextButton.className = 'slide-next';
+    nextButton.setAttribute('aria-label', 'Next Slide');
+
+    rows.forEach((row, idx) => {
       const indicator = document.createElement('li');
       indicator.classList.add('carousel-stories-slide-indicator');
       indicator.dataset.targetSlide = idx;
       indicator.innerHTML = `<button type="button" aria-label="Show Slide ${idx + 1} of ${rows.length}"></button>`;
       slideIndicators.append(indicator);
-    }
-    row.remove();
-  });
+    });
 
-  container.append(slidesWrapper);
-  block.prepend(container);
+    controls.append(prevButton, slideIndicatorsNav, nextButton);
+    block.append(controls);
 
-  if (!isSingleSlide) {
     bindEvents(block);
+    // Initialise active state (disables prev at the first slide).
+    updateActiveSlide(block, 0);
   }
 }

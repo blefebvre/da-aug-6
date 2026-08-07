@@ -1,27 +1,178 @@
+/* cards-event — "Latest results and upcoming events"
+   Values measured from atlascopcogroup.com/en (extra-dark section, 1440x900).
+   The parent .section.extra-dark supplies the #04424D background + white text.
+   Every card is a raised teal (#054e5a) box; the investor card is a filled
+   panel with CTA links, the event cards carry a date badge. */
+
 .cards-event > ul {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(257px, 1fr));
   gap: 24px;
 }
 
+/* Cards stack on mobile, 3-up on desktop. */
+@media (width >= 600px) {
+  .cards-event > ul {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (width >= 900px) {
+  .cards-event > ul {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Card box — teal panel on the darker section, equal height. */
 .cards-event > ul > li {
-  border: 1px solid #dadada;
-  background-color: var(--background-color);
+  display: flex;
+  background-color: var(--brand-teal); /* #054e5a */
+  border-radius: 0;
+}
+
+.cards-event > ul > li.cards-event-standard {
+  border-radius: 24px 24px 24px 0;
 }
 
 .cards-event .cards-event-card-body {
-  margin: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
 }
 
-.cards-event .cards-event-card-image {
-  line-height: 0;
+.cards-event-standard .cards-event-card-body {
+  gap: 20px;
+  padding: 32px;
 }
 
-.cards-event > ul > li img {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
+.cards-event-calendar .cards-event-card-body {
+  gap: 32px;
+  padding: 48px 32px 24px;
+}
+
+/* Label / pretitle — uppercase pale-teal. */
+.cards-event .cards-event-pretitle {
+  margin: 0;
+  font-family: var(--body-font-family);
+  font-size: var(--body-font-size-s); /* 16px */
+  font-weight: 600;
+  line-height: 1.5; /* 24px */
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--brand-pale-teal); /* #b4cace */
+}
+
+/* Tighten the gap between the investor label and its title. */
+.cards-event-standard .cards-event-pretitle {
+  margin-bottom: -12px;
+}
+
+/* Title — Noto Serif, white. Mobile 24/31.92 → desktop 32/44 (below). */
+.cards-event .cards-event-card-body h3 {
+  margin: 0;
+  font-family: var(--heading-font-family);
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 31.92px;
+  color: #fff;
+}
+
+@media (width >= 900px) {
+  .cards-event .cards-event-card-body h3 {
+    font-size: 32px;
+    line-height: 44px;
+  }
+}
+
+/* Description — white body copy. */
+.cards-event .cards-event-description {
+  margin: 0;
+  font-family: var(--body-font-family);
+  font-size: var(--body-font-size-m); /* 18px */
+  font-weight: 400;
+  line-height: 1.8; /* 32.4px */
+  color: #fff;
+}
+
+/* Date badge — bordered square: big serif day (gold) over month/year. */
+.cards-event .cards-event-date {
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  margin: 0;
+  padding: 4px;
+  border: 1px solid rgb(229 231 235);
+  text-transform: uppercase;
+}
+
+.cards-event .cards-event-day {
+  margin: 0 0 -2px;
+  font-family: var(--heading-font-family);
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 56px;
+  color: var(--brand-sand); /* #e1b77e */
+}
+
+.cards-event .cards-event-date-rest {
+  font-family: var(--body-font-family);
+  font-size: var(--body-font-size-s); /* 16px */
+  font-weight: 400;
+  line-height: 1.5; /* 24px */
+  text-transform: uppercase;
+  color: var(--brand-pale-teal); /* #b4cace */
+}
+
+/* CTA links — stacked, white, with a leading mask icon (row-reverse). */
+.cards-event .cards-event-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.cards-event a.cards-event-action-link:any-link {
+  display: inline-flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  min-height: 48px;
+  font-family: var(--body-font-family);
+  font-size: var(--body-font-size-m); /* 18px */
+  font-weight: 400;
+  line-height: 1.8;
+  color: #fff;
+  text-decoration: none;
+}
+
+.cards-event a.cards-event-action-link:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.cards-event .cards-event-action-link::after {
+  content: "";
+  flex: none;
+  width: 24px;
+  height: 24px;
+  background-color: #fff;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: 18px;
+}
+
+.cards-event .cards-event-action-download::after {
+  mask-image: url("data:image/svg+xml,%3Csvg%20width='17'%20height='16'%20viewBox='0%200%2017%2016'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3E%3Cpath%20d='M10.6036%202V3H12.8965L9.75009%206.14642L10.4572%206.85353L13.6036%203.70709V6H14.6036V2H10.6036Z'%20fill='black'/%3E%3Cpath%20d='M3.7001%203H8.6001V4.1H3.7001V12.9H12.5001V7.4H13.6001V12.9C13.6001%2013.5075%2013.1076%2014%2012.5001%2014H3.7001C3.09258%2014%202.6001%2013.5075%202.6001%2012.9V4.1C2.6001%203.49249%203.09258%203%203.7001%203Z'%20fill='black'/%3E%3C/svg%3E");
+}
+
+.cards-event .cards-event-action-arrow::after {
+  mask-image: url("data:image/svg+xml,%3Csvg%20width='18'%20height='16'%20viewBox='0%200%2018%2016'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3E%3Cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M9.75%200.5L8.7%201.55L14.4%207.25H0.75V8.75H14.4L8.7%2014.45L9.75%2015.5L17.25%208L9.75%200.5Z'%20fill='black'/%3E%3C/svg%3E");
 }
