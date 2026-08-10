@@ -31,23 +31,49 @@ function slug(s) {
 }
 
 /**
- * Read a section's Section Metadata table into a key→value map. Keys are
- * lower-cased; values are trimmed text. Returns {} when there's no metadata.
- * This mirrors what the section-metadata block reads, but runs independently so
- * tab grouping does not depend on that block having decorated yet.
+ * Read a section's Section Metadata into a key→value map (`tab`, `tab-group`,
+ * `tab-intro`, `tab-style`). Order-INDEPENDENT: it works whether or not the
+ * section-metadata block has decorated yet, because it reads from BOTH sources.
+ *
+ * Why both: blocks/section-metadata/section-metadata.js promotes each metadata
+ * key onto the section as a camelCase `data-*` attribute and then REMOVES itself
+ * from the DOM. On the deployed EDS site that block has ALWAYS run by the time
+ * this executes, so the `.section-metadata` element is already gone and reading
+ * only the DOM table finds nothing (every section looks tab-less → no widget
+ * built). So read the dataset FIRST, then fall back to the raw table for any
+ * environment/timing where the block hasn't decorated yet (e.g. very early in
+ * local dev). Hyphenated dataset keys must be camelCased — `dataset['tab-group']`
+ * throws; use `dataset.tabGroup`.
  * @param {Element} section
  */
 function readSectionMetadata(section) {
   const config = {};
-  const block = section.querySelector(':scope > .section-metadata, :scope > div > .section-metadata');
-  if (!block) return config;
-  block.querySelectorAll(':scope > div').forEach((row) => {
-    const cells = [...row.children];
-    if (cells.length < 2) return;
-    const key = cells[0].textContent.trim().toLowerCase();
-    const value = cells[1].textContent.trim();
-    if (key) config[key] = value;
+
+  // Post-decoration path (deployed EDS, and local once the block has run):
+  // metadata lives on the section as data-* attributes.
+  const fromDataset = {
+    tab: section.dataset.tab,
+    'tab-group': section.dataset.tabGroup,
+    'tab-intro': section.dataset.tabIntro,
+    'tab-style': section.dataset.tabStyle,
+  };
+  Object.entries(fromDataset).forEach(([key, value]) => {
+    if (value !== undefined && value !== '') config[key] = value;
   });
+
+  // Pre-decoration path: read the raw Section Metadata table. Only fills keys
+  // the dataset didn't already provide, so the dataset wins when both exist.
+  const block = section.querySelector(':scope > .section-metadata, :scope > div > .section-metadata');
+  if (block) {
+    block.querySelectorAll(':scope > div').forEach((row) => {
+      const cells = [...row.children];
+      if (cells.length < 2) return;
+      const key = cells[0].textContent.trim().toLowerCase();
+      const value = cells[1].textContent.trim();
+      if (key && config[key] === undefined) config[key] = value;
+    });
+  }
+
   return config;
 }
 
@@ -105,6 +131,19 @@ function buildTabsWidget(run, widgetIndex) {
   const tabs = [...tablist.children];
   const panels = [...wrapper.querySelectorAll(':scope > .section-tabs-panel')];
 
+  // Each accordion auto-opens its own first item; but only the ACTIVE tab's
+  // first item should be open (source behaviour: exactly 1 expanded overall).
+  // Collapse every accordion item in inactive panels; in the active panel keep
+  // only the first item open.
+  const syncAccordions = (activeIndex) => {
+    panels.forEach((panel, i) => {
+      const items = [...panel.querySelectorAll('.accordion-item')];
+      items.forEach((item, j) => {
+        item.open = i === activeIndex && j === 0;
+      });
+    });
+  };
+
   const activate = (index, focus = true) => {
     tabs.forEach((t, i) => {
       const selected = i === index;
@@ -112,8 +151,12 @@ function buildTabsWidget(run, widgetIndex) {
       t.tabIndex = selected ? 0 : -1;
       panels[i].hidden = !selected;
     });
+    syncAccordions(index);
     if (focus) tabs[index].focus();
   };
+
+  // Initial sync: only the first panel's first accordion item stays open.
+  syncAccordions(0);
 
   tabs.forEach((tab, i) => {
     tab.addEventListener('click', () => activate(i, false));

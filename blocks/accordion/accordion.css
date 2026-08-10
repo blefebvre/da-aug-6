@@ -1,0 +1,109 @@
+/*
+ * Accordion block — collapsible items rendered as <details>/<summary>.
+ * On the reports-and-presentations page these sit inside the dark tabs band,
+ * where each item is a WHITE card (teal text) on the teal background.
+ * Values measured from the source .cmp-accordion.
+ */
+
+.accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.accordion .accordion-item {
+  background-color: #fff;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* Header row: quarter label + expand/collapse affordance. */
+.accordion .accordion-item-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px;
+  font-family: var(--heading-font-family);
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--brand-teal); /* #054E5A */
+  cursor: pointer;
+  list-style: none;
+}
+
+.accordion .accordion-item-label::-webkit-details-marker {
+  display: none;
+}
+
+/* Chevron on the right, rotates when open. */
+.accordion .accordion-item-label::after {
+  content: "";
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  border-right: 2px solid currentcolor;
+  border-bottom: 2px solid currentcolor;
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+}
+
+.accordion .accordion-item[open] .accordion-item-label::after {
+  transform: rotate(-135deg);
+}
+
+/* Body: the date + grouped document lists. */
+.accordion .accordion-item-body {
+  padding: 0 24px 24px;
+  color: var(--text-color);
+}
+
+/* "Published on …" date line. */
+.accordion .accordion-item-body > p:first-child {
+  margin: 0 0 16px;
+  font-size: 16px;
+  color: var(--text-color);
+}
+
+/* Group headings (Downloadable documents / Press release / Webcast). */
+.accordion .accordion-item-body h4 {
+  margin: 20px 0 8px;
+  font-family: var(--heading-font-family);
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--brand-teal); /* #054E5A */
+}
+
+.accordion .accordion-item-body ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.accordion .accordion-item-body li {
+  margin: 0 0 8px;
+}
+
+/* Document links. Internal DAM links (/content/dam/…) are teal with no
+   underline; external links (http(s)://… or /en/…) are blue + underlined.
+   The default is teal-internal; the [href^="http"] / media overrides flip
+   external ones to blue. */
+.accordion .accordion-item-body a:any-link {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--brand-teal); /* #054E5A — internal document */
+  text-decoration: none;
+}
+
+.accordion .accordion-item-body a:hover {
+  text-decoration: underline;
+}
+
+.accordion .accordion-item-body a[href^="http"]:any-link,
+.accordion .accordion-item-body a[href^="/en/"]:any-link {
+  color: var(--link-color); /* #1072B9 — external destination */
+  text-decoration: underline;
+}

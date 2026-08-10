@@ -365,37 +365,47 @@ main .section.filled-gold {
   padding: 0 30px;
 }
 
-/* Tablist: horizontal, wraps on overflow, grey baseline under all tabs. */
+/* Folder-tab chrome (measured from source .cmp-tabs): a light-grey rounded
+   strip; the active tab is a white "folder" tab that reads as continuous with
+   the white panel below it. Tabs wrap on overflow (no select on mobile). */
 .section-tabs-list {
   display: flex;
   flex-wrap: wrap;
   gap: 0;
-  margin: 0 0 32px;
+  margin: 0;
+  padding: 0;
+  background-color: rgb(227 229 233); /* light grey strip */
+  border-radius: 10px 10px 0 0;
   border-bottom: 1px solid rgb(164 170 180);
 }
 
 .section-tabs-tab {
-  margin: 0 0 -1px; /* overlap the tablist baseline */
-  padding: 14px 18px;
-  border: 0;
-  border-bottom: 3px solid transparent;
+  margin: 0;
+  padding: 24px 32px;
+  border: 1px solid transparent;
+  border-bottom: 0;
   background: none;
   font-family: var(--body-font-family);
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
   line-height: 1.2;
-  color: var(--text-color);
+  color: var(--text-color); /* #3e3f41 dark-grey inactive */
   cursor: pointer;
-  transition: color 0.2s ease, border-color 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .section-tabs-tab:hover {
   color: var(--brand-teal);
 }
 
+/* Active tab: white folder tab with teal text + grey border, rounded top,
+   pulled down 1px so it overlaps the strip baseline and joins the panel. */
 .section-tabs-tab[aria-selected="true"] {
   color: var(--brand-teal);
-  border-bottom-color: var(--brand-teal);
+  background-color: #fff;
+  border-color: rgb(164 170 180);
+  border-radius: 12px 12px 0 0;
+  margin-bottom: -1px;
 }
 
 .section-tabs-tab:focus-visible {
@@ -403,18 +413,18 @@ main .section.filled-gold {
   outline-offset: -2px;
 }
 
-/* Panels are ordinary sections; hide the inactive ones. The tab widget owns its
-   panels' vertical rhythm, so collapse the default section margins. */
+/* Panels: white cards that continue from the active tab. Hide inactive ones. */
 .section-tabs .section-tabs-panel {
   margin: 0;
+  background-color: #fff;
+  padding: 16px;
 }
 
 .section-tabs .section-tabs-panel[hidden] {
   display: none;
 }
 
-/* The widget already provides the outer gutter, so let panel content span the
-   full widget width instead of re-applying the section column. */
+/* The widget provides the outer gutter; let panel/intro content span it. */
 .section-tabs .section-tabs-intro > div,
 .section-tabs .section-tabs-panel > .default-content-wrapper,
 .section-tabs .section-tabs-panel > div {
@@ -428,10 +438,16 @@ main .section.filled-gold {
   margin: 0 0 24px;
 }
 
+.section-tabs-intro :is(h1, h2, h3) {
+  font-size: 40px;
+  line-height: 1.2;
+  margin: 0;
+}
+
 /* ---- dark band variant (source: tabs live in a teal section) ----
-   Full-bleed teal background spanning the viewport, with the widget's content
-   held to the normal column via an inner max-width. White text; tabs go white
-   with a translucent baseline and a gold active underline for contrast. */
+   Full-bleed teal background spanning the viewport; the widget's content is
+   held to the normal column via an inner max-width. Only the intro heading and
+   tablist strip take the dark treatment — the PANELS stay white cards. */
 .section-tabs-dark {
   max-width: none;
   margin: 0;
@@ -451,47 +467,9 @@ main .section.filled-gold {
   max-width: var(--section-max-width);
   margin-left: auto;
   margin-right: auto;
-  padding-left: 30px;
-  padding-right: 30px;
 }
 
-.section-tabs-dark :is(h1, h2, h3, h4, h5, h6) {
+/* Only the intro heading is white-on-teal; panel content stays dark-on-white. */
+.section-tabs-dark > .section-tabs-intro :is(h1, h2, h3, h4, h5, h6) {
   color: #fff;
-}
-
-/* Document links inside the dark panels read as light underlined links.
-   (These intentionally follow the generic `.section.dark a` rules; the cascade
-   order is deliberate, so silence the descending-specificity check here.) */
-/* stylelint-disable no-descending-specificity */
-.section-tabs-dark .section-tabs-panel a:any-link {
-  color: #fff;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.section-tabs-dark .section-tabs-panel a:hover {
-  color: var(--brand-sand); /* #e1b77e */
-}
-/* stylelint-enable no-descending-specificity */
-
-/* Tabs on the dark band: white text, translucent baseline, sand active underline. */
-.section-tabs-dark .section-tabs-list {
-  border-bottom-color: rgb(255 255 255 / 35%);
-}
-
-.section-tabs-dark .section-tabs-tab {
-  color: rgb(255 255 255 / 80%);
-}
-
-.section-tabs-dark .section-tabs-tab:hover {
-  color: #fff;
-}
-
-.section-tabs-dark .section-tabs-tab[aria-selected="true"] {
-  color: #fff;
-  border-bottom-color: var(--brand-sand); /* #e1b77e */
-}
-
-.section-tabs-dark .section-tabs-tab:focus-visible {
-  outline-color: #fff;
 }

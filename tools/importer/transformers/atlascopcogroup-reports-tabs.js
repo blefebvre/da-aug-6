@@ -12,15 +12,72 @@
  * Our target is "section-based tabs": each year becomes its OWN section, flagged
  * with a Section Metadata table `| tab | <year> |` (+ `| tab-group | overview |`).
  * The render-time helper scripts/section-tabs.js groups the adjacent tab-flagged
- * sections into a tabbed widget. So this transformer replaces the `.cmp-tabs`
- * DOM with a flat sequence of: <hr>, section content (group headings + document
- * link lists), <section-metadata table>, repeated per year.
+ * sections into a tabbed widget.
+ *
+ * Inside each tab section the source nests an ACCORDION (one item per quarter),
+ * and each accordion item body has a "Published on …" date plus up to three
+ * grouped sub-sections (h4: "Downloadable documents", "Press release",
+ * "Webcast"). We preserve that: each tab section emits an `accordion` block
+ * whose rows are [ quarter-label | body ], where the body holds the date <p>
+ * and, per group, an <h4> followed by that group's document <ul>. blocks/
+ * accordion decorates the block into collapsible items (first item expanded).
  *
  * Runs in beforeTransform: it consumes the source `.cmp-tabs` before any block
- * parser touches it, and emits plain headings/lists/anchors the importer knows.
+ * parser touches it, and emits an accordion table + section metadata per year.
  */
 
 const TransformHook = { beforeTransform: 'beforeTransform', afterTransform: 'afterTransform' };
+
+// Build the body cell for one accordion item (one quarter): the "Published on"
+// date paragraph (when present) followed by each h4 group and its document
+// links as a <ul>. Link grouping follows source DOM order: each h4 owns the
+// links that appear after it, up to the next h4.
+function buildQuarterBody(doc, item) {
+  const parts = [];
+
+  // Published-on date: first text node starting with "Published on".
+  const dateEl = [...item.querySelectorAll('p, .cmp-text')]
+    .find((p) => /^Published on/i.test(p.textContent.trim()));
+  if (dateEl) {
+    const p = doc.createElement('p');
+    p.textContent = dateEl.textContent.trim();
+    parts.push(p);
+  }
+
+  // Walk headings + links in document order, bucketing links under the latest
+  // h4. Links without a preceding h4 (rare) fall into an initial unlabeled ul.
+  const panelBody = item.querySelector('.cmp-accordion__panel') || item;
+  const seen = new Set();
+  let currentUl = null;
+  const flush = () => { if (currentUl && currentUl.children.length) parts.push(currentUl); };
+
+  panelBody.querySelectorAll('h4, a[href]').forEach((node) => {
+    if (node.tagName === 'H4') {
+      flush();
+      const h4 = doc.createElement('h4');
+      h4.textContent = node.textContent.trim();
+      parts.push(h4);
+      currentUl = doc.createElement('ul');
+    } else {
+      const href = node.getAttribute('href');
+      const text = node.textContent.trim();
+      if (!href || !text) return;
+      const key = `${text}|${href}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      if (!currentUl) currentUl = doc.createElement('ul');
+      const li = doc.createElement('li');
+      const a = doc.createElement('a');
+      a.setAttribute('href', href);
+      a.textContent = text;
+      li.appendChild(a);
+      currentUl.appendChild(li);
+    }
+  });
+  flush();
+
+  return parts;
+}
 
 // Build a Section Metadata table (same shape WebImporter.Blocks.createBlock makes)
 // carrying the tab label + shared group id + a dark-style hint. section-tabs.js
@@ -92,41 +149,22 @@ export default function transform(hookName, element, payload) {
     // run; the render-time grouper needs <hr> boundaries between panels).
     frag.appendChild(doc.createElement('hr'));
 
-    // Each accordion item = one report group. Emit its title as an <h3> and its
-    // documents as a <ul> of links. Fall back to raw panel content if the
-    // accordion structure is absent.
+    // Each accordion item = one quarter. Emit an `accordion` block whose rows
+    // are [ quarter-label | body ] (body = date + h4 groups + link lists).
     const items = [...panel.querySelectorAll('.cmp-accordion__item')];
     if (items.length) {
+      const rows = [];
       items.forEach((item) => {
-        const titleEl = item.querySelector('.cmp-accordion__title, [class*="title"], button, h3');
-        const groupLabel = titleEl ? titleEl.textContent.trim() : '';
-        if (groupLabel) {
-          const h3 = doc.createElement('h3');
-          h3.textContent = groupLabel;
-          frag.appendChild(h3);
-        }
-
-        // Collect the document links in this group. `.cmp-download__title-link`
-        // is the canonical doc link; also keep other real anchors (CEO comment,
-        // webcast) that appear in the item body.
-        const seen = new Set();
-        const ul = doc.createElement('ul');
-        item.querySelectorAll('a[href]').forEach((a) => {
-          const href = a.getAttribute('href');
-          const text = a.textContent.trim();
-          if (!href || !text) return;
-          const key = `${text}|${href}`;
-          if (seen.has(key)) return;
-          seen.add(key);
-          const li = doc.createElement('li');
-          const link = doc.createElement('a');
-          link.setAttribute('href', href);
-          link.textContent = text;
-          li.appendChild(link);
-          ul.appendChild(li);
-        });
-        if (ul.children.length) frag.appendChild(ul);
+        const titleEl = item.querySelector('.cmp-accordion__title, .cmp-accordion__button, [class*="title"], h3');
+        const quarterLabel = titleEl ? titleEl.textContent.trim() : '';
+        if (!quarterLabel) return;
+        const body = buildQuarterBody(doc, item);
+        rows.push([quarterLabel, body]);
       });
+      if (rows.length) {
+        const accordion = WebImporter.Blocks.createBlock(doc, { name: 'accordion', cells: rows });
+        frag.appendChild(accordion);
+      }
     } else {
       // No accordion — move the panel's own children across.
       while (panel.firstChild) frag.appendChild(panel.firstChild);
@@ -135,6 +173,11 @@ export default function transform(hookName, element, payload) {
     // Section metadata that flags this section as a tab.
     frag.appendChild(buildTabMetadata(doc, label));
   });
+
+  // Trailing section break so whatever FOLLOWS the tabs (e.g. "You might also
+  // be interested in") starts its own, non-tab section — otherwise it would be
+  // absorbed into the last tab panel (2020).
+  frag.appendChild(doc.createElement('hr'));
 
   // Replace the whole tabs widget with the flattened tab sections.
   tabsRoot.replaceWith(frag);
