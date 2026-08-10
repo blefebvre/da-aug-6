@@ -289,11 +289,41 @@ breadcrumb/eyebrow classes. Reports CTA vs doc links: the source CTA is a `.cmp-
 ## Import: bundle + eslint + templates
 - Two per-template importers exist: `import-homepage.js` and
   `import-reports-and-presentations.js`, each with its own `.bundle.js` + `urls-*.txt`.
-- Generated `*.bundle.js` files are in `.eslintignore` (esbuild IIFE output isn't
-  lint-clean). Rebuild the bundle after editing ANY parser/transformer, point
-  run-bulk-import at the `.bundle.js`, and `npm run lint` before committing (both JS +
-  CSS; stylelint enforces `no-descending-specificity` — guard deliberate cascade
-  overrides with `/* stylelint-disable-next-line no-descending-specificity */`).
+- Generated `*.bundle.js` files are in `.eslintignore` (esbuild output isn't lint-clean).
+  Rebuild the bundle(s) after editing ANY parser/transformer, point run-bulk-import at the
+  `.bundle.js`, and `npm run lint` before committing (both JS + CSS; stylelint enforces
+  `no-descending-specificity` — guard deliberate cascade overrides with
+  `/* stylelint-disable-next-line no-descending-specificity */`).
 - reports-and-presentations import completeness reports ~54% — expected, because most of
   the page's content now lives in blocks (accordion/tabs/cards); the score measures loose
   text survival, not correctness.
+
+## TWO bundle formats — one source, two runners (do not conflate)
+The import source (`import-*.js`) is bundled TWICE, into two artifacts that must both be
+rebuilt after any parser/transformer edit. Same `transform` source → byte-identical output
+(verified); the ONLY difference is module format for the two loaders:
+- **`.bundle.js` (IIFE, `--format=iife --global-name=CustomImportScript`)** — for the EMA
+  runner (`run-bulk-import.js`), which injects it as a `<script>` and reads
+  `window.CustomImportScript.default`.
+  `npx -y esbuild@0.28.1 tools/importer/import-<t>.js --bundle --format=iife --global-name=CustomImportScript --outfile=tools/importer/import-<t>.bundle.js`
+- **`.ui.bundle.js` (ESM, `--format=esm`)** — for the local **helix-importer-ui**, which
+  loads the file with a dynamic `import()` and reads `default.transform`. An IIFE bundle
+  has NO ES exports, so `import()`ing it gives `default = {default, "module.exports"}` with
+  no `.transform` → the UI silently falls back to a passthrough `transformDOM` → **Markdown
+  with flattened prose and NO blocks** (this exact symptom). The ESM bundle exposes
+  `default.transform`, fixing it. `WebImporter` stays a free global (UI provides it on
+  `window`). Build:
+  `npx -y esbuild@0.28.1 tools/importer/import-<t>.js --bundle --format=esm --outfile=tools/importer/import-<t>.ui.bundle.js`
+
+### Running an import from the local helix-importer-ui
+1. Serve the repo (the UI loads the bundle over http). Transformation file URL to paste:
+   `http://localhost:3001/tools/importer/import-homepage.ui.bundle.js` (or
+   `…/import-reports-and-presentations.ui.bundle.js`). **Use the `.ui.bundle.js`, NOT the
+   IIFE `.bundle.js`** (that's the no-blocks trap above).
+2. Import Options: Project Type = Document Authoring; **page load timeout ≥ 8000ms** (5000
+   truncates the long lazy-loaded homepage around "Our brands" — a load/scroll symptom,
+   NOT the no-blocks bug); Save HTML for Document Authoring ON; Save as docx OFF; Enable
+   JavaScript ON; Scroll to bottom ON.
+3. Expected: homepage → Hero Banner, Cards Nav, Cards Feature, Cards News, Cards Event,
+   Cards Stats, Columns Media ×4, Carousel + 4 Section Metadata; reports → Cards Feature
+   ×2, Accordion ×7, `breadcrumb` metadata row, no authored breadcrumb `<ol>`.
