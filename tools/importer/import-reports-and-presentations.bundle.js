@@ -434,6 +434,49 @@ var CustomImportScript = (() => {
     });
   }
 
+  // tools/importer/transformers/atlascopcogroup-breadcrumb.js
+  var TransformHook5 = { beforeTransform: "beforeTransform", afterTransform: "afterTransform" };
+  function encodeTrail(pairs) {
+    return pairs.map(({ path, label }) => `${path}::${label}`).join("|");
+  }
+  function transform6(hookName, element, payload) {
+    if (hookName !== TransformHook5.afterTransform) return;
+    const doc = element.ownerDocument;
+    const items = [...element.querySelectorAll(".cmp-breadcrumb__item")];
+    const pairs = [];
+    items.forEach((li) => {
+      const a = li.querySelector("a[href]");
+      if (!a) return;
+      const path = a.getAttribute("href").trim();
+      const label = (a.querySelector('[itemprop="name"]') || a).textContent.trim();
+      if (path && label) pairs.push({ path, label });
+    });
+    if (pairs.length) {
+      const tables = [...element.querySelectorAll("table")].filter((t) => {
+        const first = t.querySelector("th, td");
+        return first && first.textContent.trim().toLowerCase() === "metadata";
+      });
+      tables.forEach((table) => {
+        const has = [...table.querySelectorAll("tr")].some((r) => {
+          const c = r.children[0];
+          return c && c.textContent.trim().toLowerCase() === "breadcrumb";
+        });
+        if (has) return;
+        const tr = doc.createElement("tr");
+        const keyTd = doc.createElement("td");
+        keyTd.textContent = "breadcrumb";
+        const valTd = doc.createElement("td");
+        valTd.textContent = encodeTrail(pairs);
+        tr.append(keyTd, valTd);
+        table.appendChild(tr);
+      });
+    }
+    WebImporter.DOMUtils.remove(element, [
+      ".breadcrumb.cmp-breadcrumb--bar",
+      ".cmp-breadcrumb"
+    ]);
+  }
+
   // tools/importer/import-reports-and-presentations.js
   var parsers = {
     "cards-feature": parse
@@ -528,6 +571,11 @@ var CustomImportScript = (() => {
         transform5("afterTransform", main, { ...payload, template: PAGE_TEMPLATE });
       } catch (e) {
         console.error("metadata-image transformer failed:", e);
+      }
+      try {
+        transform6("afterTransform", main, { ...payload, template: PAGE_TEMPLATE });
+      } catch (e) {
+        console.error("breadcrumb transformer failed:", e);
       }
       const rawPath = new URL(params.originalURL).pathname.replace(/\/$/, "").replace(/\.html?$/, "");
       const path = WebImporter.FileUtils.sanitizePath(rawPath === "" ? "/index" : rawPath);

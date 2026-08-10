@@ -10,6 +10,7 @@ import {
   loadSections,
   loadCSS,
   buildBlock,
+  getMetadata,
 } from './aem.js';
 import buildSectionTabs from './section-tabs.js';
 
@@ -414,42 +415,79 @@ function decorateButtons(main) {
  * @param {Element} main The main element
  */
 /**
- * Tag the top-of-page hero default content (breadcrumb, eyebrow, lede) so global
- * CSS can style them. All are plain default content (no block): the breadcrumb
- * is an <ol> of ancestor links; the eyebrow is the short <p> before the H1; the
- * lede is the intro <p> right after the H1 (source renders it as a larger,
- * column-constrained hero paragraph). Scoped to the FIRST section's
- * default-content-wrapper, so it never touches block content (e.g. the homepage
- * hero auto-block) and is a no-op on pages without this top-of-page pattern.
+ * Build a breadcrumb <ol> from the URL-derived `breadcrumb` page metadata.
+ * The metadata value is the ANCESTOR trail, encoded `path::label|path::label`
+ * (written deterministically at import time from the source breadcrumb / URL
+ * hierarchy — see the breadcrumb import transformer). The CURRENT page's own
+ * crumb is appended here from the page title (plain text, aria-current="page"),
+ * so it never lives in metadata. Returns null when there are no ancestors (e.g.
+ * /en) so the hero renders no breadcrumb rather than an empty bar.
+ * @returns {HTMLOListElement|null}
+ */
+function buildBreadcrumb() {
+  const raw = getMetadata('breadcrumb');
+  if (!raw) return null;
+  const ancestors = raw.split('|')
+    .map((pair) => {
+      const idx = pair.indexOf('::');
+      if (idx < 0) return null;
+      const path = pair.slice(0, idx).trim();
+      const label = pair.slice(idx + 2).trim();
+      return path && label ? { path, label } : null;
+    })
+    .filter(Boolean);
+  if (!ancestors.length) return null;
+
+  const ol = document.createElement('ol');
+  ol.className = 'breadcrumb';
+  ancestors.forEach(({ path, label }) => {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = path;
+    a.textContent = label;
+    li.append(a);
+    ol.append(li);
+  });
+  // Current page: plain text (not a link), from the page title.
+  const current = (getMetadata('og:title') || document.title || '').trim();
+  if (current) {
+    const li = document.createElement('li');
+    li.setAttribute('aria-current', 'page');
+    li.textContent = current;
+    ol.append(li);
+  }
+  return ol;
+}
+
+/**
+ * Prepend a generated breadcrumb and tag the eyebrow/lede in the top-of-page
+ * hero so global CSS can style them. The breadcrumb is DERIVED (built from
+ * metadata, not authored). Eyebrow is the short <p> before the H1; lede is the
+ * intro <p> after it. Scoped to the FIRST section's default-content-wrapper, so
+ * it never touches block content (e.g. the homepage hero auto-block) and is a
+ * no-op on pages without this top-of-page pattern (or without a hero H1).
  * @param {Element} main
  */
 function decorateHeroIntro(main) {
   const dc = main.querySelector(':scope > .section > .default-content-wrapper');
   if (!dc) return;
 
-  // Breadcrumb: a leading <ol> whose items are ancestor links (the last crumb,
-  // the current page, is plain text). Require ≥2 items, all-but-last linked.
-  const ol = dc.querySelector(':scope > ol');
-  if (ol) {
-    const items = [...ol.children];
-    const linked = items.filter((li) => li.querySelector(':scope > a'));
-    if (items.length >= 2 && linked.length >= items.length - 1) {
-      ol.classList.add('breadcrumb');
-    }
-  }
-
   const h1 = dc.querySelector(':scope > h1');
-  if (h1) {
-    // Eyebrow: the short <p> immediately preceding the page <h1>.
-    const prev = h1.previousElementSibling;
-    if (prev && prev.tagName === 'P' && prev.textContent.trim()) {
-      prev.classList.add('eyebrow');
-    }
-    // Lede: the intro <p> immediately following the H1 (hero paragraph).
-    const next = h1.nextElementSibling;
-    if (next && next.tagName === 'P' && next.textContent.trim()) {
-      next.classList.add('hero-lede');
-    }
+  if (!h1) return; // only decorate a genuine page hero (H1 present)
+
+  // Breadcrumb: build from metadata and insert as the hero's first child.
+  const crumb = buildBreadcrumb();
+  if (crumb) dc.insertBefore(crumb, dc.firstChild);
+
+  // Eyebrow: the short <p> immediately preceding the page <h1>.
+  const prev = h1.previousElementSibling;
+  if (prev && prev.tagName === 'P' && prev.textContent.trim()) {
+    prev.classList.add('eyebrow');
+  }
+  // Lede: the intro <p> immediately following the H1 (hero paragraph).
+  const next = h1.nextElementSibling;
+  if (next && next.tagName === 'P' && next.textContent.trim()) {
+    next.classList.add('hero-lede');
   }
 }
 

@@ -10,6 +10,7 @@ import heroSectionTransformer from './transformers/atlascopcogroup-hero-section.
 import reportsTabsTransformer from './transformers/atlascopcogroup-reports-tabs.js';
 import dmImagesTransformer from './transformers/atlascopcogroup-dm-images.js';
 import metadataImageTransformer from './transformers/atlascopcogroup-metadata-image.js';
+import breadcrumbTransformer from './transformers/atlascopcogroup-breadcrumb.js';
 
 const parsers = {
   'cards-feature': cardsFeatureReportsParser,
@@ -127,6 +128,16 @@ export default {
       metadataImageTransformer('afterTransform', main, { ...payload, template: PAGE_TEMPLATE });
     } catch (e) {
       console.error('metadata-image transformer failed:', e);
+    }
+
+    // 5c. Persist the URL-derived breadcrumb trail into page metadata and strip
+    // the authored breadcrumb markup. Runs AFTER createMetadata (appends a
+    // `breadcrumb` row to the Metadata table); the source breadcrumb still
+    // exists in the document here (no block parser consumes it).
+    try {
+      breadcrumbTransformer('afterTransform', main, { ...payload, template: PAGE_TEMPLATE });
+    } catch (e) {
+      console.error('breadcrumb transformer failed:', e);
     }
 
     // 6. Sanitized path (never the root here, so no /index special-case needed).
