@@ -38,8 +38,10 @@ export default function parse(element, { document }) {
 
     const textCell = [];
     if (title) {
-      // Normalize the card title to an <h3> (cards-feature convention).
-      const h = document.createElement('h3');
+      // Source uses an <h2> for these featured-document card titles (40/56).
+      // (Homepage teaser cards-feature uses <h3>; these are the larger reports
+      // variant, distinguished at render time by the document-link <ul>.)
+      const h = document.createElement('h2');
       h.textContent = title.textContent.trim();
       textCell.push(h);
     }

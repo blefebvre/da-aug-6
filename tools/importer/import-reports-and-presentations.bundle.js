@@ -33,7 +33,7 @@ var CustomImportScript = (() => {
       const title = card.querySelector("h2, h1, h3");
       const textCell = [];
       if (title) {
-        const h = document.createElement("h3");
+        const h = document.createElement("h2");
         h.textContent = title.textContent.trim();
         textCell.push(h);
       }

@@ -413,6 +413,38 @@ function decorateButtons(main) {
  * Decorates the main element.
  * @param {Element} main The main element
  */
+/**
+ * Tag the top-of-page breadcrumb trail and section eyebrow so global CSS can
+ * style them. Both are plain default content (no block): the breadcrumb is an
+ * <ol> of ancestor links; the eyebrow is the short <p> that introduces the H1.
+ * Scoped to the FIRST section's default-content-wrapper, so it never touches
+ * block content (e.g. the homepage hero auto-block) and is a no-op on pages
+ * that don't have this top-of-page pattern.
+ * @param {Element} main
+ */
+function decorateBreadcrumbAndEyebrow(main) {
+  const dc = main.querySelector(':scope > .section > .default-content-wrapper');
+  if (!dc) return;
+
+  // Breadcrumb: a leading <ol> whose items are ancestor links (the last crumb,
+  // the current page, is plain text). Require ≥2 items, all-but-last linked.
+  const ol = dc.querySelector(':scope > ol');
+  if (ol) {
+    const items = [...ol.children];
+    const linked = items.filter((li) => li.querySelector(':scope > a'));
+    if (items.length >= 2 && linked.length >= items.length - 1) {
+      ol.classList.add('breadcrumb');
+    }
+  }
+
+  // Eyebrow: the short <p> immediately preceding the page <h1>.
+  const h1 = dc.querySelector(':scope > h1');
+  const prev = h1 && h1.previousElementSibling;
+  if (prev && prev.tagName === 'P' && prev.textContent.trim()) {
+    prev.classList.add('eyebrow');
+  }
+}
+
 // eslint-disable-next-line import/prefer-default-export
 export function decorateMain(main) {
   decorateIcons(main);
@@ -424,6 +456,7 @@ export function decorateMain(main) {
   // `.section` wrappers exist) and before decorateBlocks (so blocks inside the
   // moved panel sections still decorate normally).
   buildSectionTabs(main);
+  decorateBreadcrumbAndEyebrow(main);
   decorateBlocks(main);
   decorateButtons(main);
 }

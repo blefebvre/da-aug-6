@@ -348,6 +348,59 @@ main .section.filled-gold {
   }
 }
 
+/* ---------------------------------------------------------- breadcrumb + eyebrow
+   Top-of-page default content, tagged by decorateMain (scripts.js). */
+
+/* Breadcrumb: one horizontal row, no list markers/indent, chevron separators.
+   Only the ancestor crumbs are links; the current-page crumb is plain text. */
+main .default-content-wrapper ol.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  line-height: 24px;
+  color: rgb(62 63 65);
+}
+
+main .default-content-wrapper ol.breadcrumb > li {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Overrides the generic link color; cascade order is deliberate. */
+/* stylelint-disable-next-line no-descending-specificity */
+main .default-content-wrapper ol.breadcrumb > li a:any-link {
+  color: rgb(62 63 65);
+  text-decoration: none;
+}
+
+main .default-content-wrapper ol.breadcrumb > li a:any-link:hover {
+  text-decoration: underline;
+}
+
+/* Chevron after every crumb except the last (source uses ">" as an ::after). */
+main .default-content-wrapper ol.breadcrumb > li:not(:last-child)::after {
+  content: ">";
+  margin: 0 8px;
+  color: rgb(62 63 65);
+}
+
+/* Section eyebrow: the small uppercase label above the H1 (same treatment as
+   the homepage "CAREERS" / "SUSTAINABILITY" eyebrows). */
+main .default-content-wrapper p.eyebrow {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--brand-teal-dark); /* #04424D */
+}
+
 /* ---------------------------------------------------------------- section tabs
    Section-based tabs (see scripts/section-tabs.js). A run of sections flagged
    with `| tab | <label> |` section metadata becomes one tabbed widget:
@@ -449,12 +502,15 @@ main .section.filled-gold {
    held to the normal column via an inner max-width. Only the intro heading and
    tablist strip take the dark treatment — the PANELS stay white cards. */
 .section-tabs-dark {
+  /* Full-bleed WITHOUT 100vw. The band is a direct child of <main>, which spans
+     the full content width with no horizontal padding, so letting the band be a
+     normal block (width:auto, no side margin) fills it edge-to-edge. Avoid
+     `width:100vw; margin-left:calc(50% - 50vw)`: on browsers with classic
+     (gutter) scrollbars, 100vw counts the scrollbar column, so the band overhangs
+     the viewport by the scrollbar width (~7px) and causes horizontal scroll. */
   max-width: none;
+  width: auto;
   margin: 0;
-
-  /* Full-bleed: expand to the viewport width regardless of the parent column. */
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
   padding: 64px 0;
   background-color: var(--brand-teal); /* #054E5A */
   color: #fff;

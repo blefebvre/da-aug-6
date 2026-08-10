@@ -69,8 +69,9 @@
 }
 
 /* Title — teal Noto Serif, mobile 24/31.92 (desktop 32/44 below) weight 400.
-   Beats `main .section.dark :is(h1..h6)` (0,2,2) by load order + tie. */
-main .cards-feature .cards-feature-card-body h3 {
+   Beats `main .section.dark :is(h1..h6)` (0,2,2) by load order + tie.
+   This is the HOMEPAGE teaser card size ("Solutions for real challenges…"). */
+main .cards-feature .cards-feature-card-body :is(h2, h3) {
   color: var(--brand-teal);
   font-family: var(--heading-font-family);
   font-size: 24px;
@@ -79,9 +80,26 @@ main .cards-feature .cards-feature-card-body h3 {
 }
 
 @media (width >= 900px) {
-  main .cards-feature .cards-feature-card-body h3 {
+  main .cards-feature .cards-feature-card-body :is(h2, h3) {
     font-size: 32px;
     line-height: 44px;
+  }
+}
+
+/* Reports "featured document" cards use a larger title (source: H2 40/56).
+   Distinguish them from the homepage teaser cards by the document-link <ul>
+   in the body (homepage teasers have a CTA paragraph, no list). `:has(ul)`
+   raises specificity above the base title rule, so this wins for those cards
+   only. Matches both the currently-published <h3> and a future <h2>. */
+main .cards-feature .cards-feature-card-body:has(ul) :is(h2, h3) {
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+@media (width >= 900px) {
+  main .cards-feature .cards-feature-card-body:has(ul) :is(h2, h3) {
+    font-size: 40px;
+    line-height: 56px;
   }
 }
 
@@ -127,3 +145,34 @@ main .cards-feature .cards-feature-card-body a:not(.button):any-link {
   background-color: currentcolor;
   mask: url("data:image/svg+xml,<svg width='18' height='16' viewBox='0 0 18 16' fill='none' xmlns='http://www.w3.org/2000/svg'><path fill-rule='evenodd' clip-rule='evenodd' d='M9.75 0.5L8.7 1.55L14.4 7.25H0.75V8.75H14.4L8.7 14.45L9.75 15.5L17.25 8L9.75 0.5Z' fill='%23ffffff'/></svg>") no-repeat center / 18px;
 }
+
+/* Reports "featured document" cards: the document links sit in a <ul>. These
+   are internal DAM PDF links, so they take the plain teal internal-link
+   treatment — NOT the blue CTA-with-arrow used by the homepage teaser cards
+   (whose single CTA lives in a <p>, so `li a` never matches it). No bullets,
+   no arrow glyph, inline layout. The `li` in the selector raises specificity
+   above the base link rules so these win. */
+.cards-feature .cards-feature-card-body ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* The `li a` selectors intentionally override the earlier `a` CTA rules; the
+   cascade order is deliberate, so silence the descending-specificity check. */
+/* stylelint-disable no-descending-specificity */
+main .cards-feature .cards-feature-card-body li a:not(.button):any-link {
+  display: inline;
+  gap: 0;
+  color: var(--brand-teal); /* #054E5A — internal document */
+}
+
+main .cards-feature .cards-feature-card-body li a:not(.button):any-link:hover {
+  color: var(--brand-teal);
+  text-decoration: underline;
+}
+
+.cards-feature .cards-feature-card-body li a:not(.button):any-link::after {
+  content: none;
+}
+/* stylelint-enable no-descending-specificity */
