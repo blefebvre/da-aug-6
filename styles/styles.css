@@ -415,9 +415,83 @@ main .section.filled-gold {
 
 /* The widget already provides the outer gutter, so let panel content span the
    full widget width instead of re-applying the section column. */
+.section-tabs .section-tabs-intro > div,
 .section-tabs .section-tabs-panel > .default-content-wrapper,
 .section-tabs .section-tabs-panel > div {
   max-width: none;
   padding-left: 0;
   padding-right: 0;
+}
+
+/* Intro heading (e.g. "Overview of documents") sits above the tablist. */
+.section-tabs-intro {
+  margin: 0 0 24px;
+}
+
+/* ---- dark band variant (source: tabs live in a teal section) ----
+   Full-bleed teal background spanning the viewport, with the widget's content
+   held to the normal column via an inner max-width. White text; tabs go white
+   with a translucent baseline and a gold active underline for contrast. */
+.section-tabs-dark {
+  max-width: none;
+  margin: 0;
+
+  /* Full-bleed: expand to the viewport width regardless of the parent column. */
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  padding: 64px 0;
+  background-color: var(--brand-teal); /* #054E5A */
+  color: #fff;
+}
+
+/* Re-center the dark widget's inner content within the standard column. */
+.section-tabs-dark > .section-tabs-intro,
+.section-tabs-dark > .section-tabs-list,
+.section-tabs-dark > .section-tabs-panel {
+  max-width: var(--section-max-width);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 30px;
+  padding-right: 30px;
+}
+
+.section-tabs-dark :is(h1, h2, h3, h4, h5, h6) {
+  color: #fff;
+}
+
+/* Document links inside the dark panels read as light underlined links.
+   (These intentionally follow the generic `.section.dark a` rules; the cascade
+   order is deliberate, so silence the descending-specificity check here.) */
+/* stylelint-disable no-descending-specificity */
+.section-tabs-dark .section-tabs-panel a:any-link {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.section-tabs-dark .section-tabs-panel a:hover {
+  color: var(--brand-sand); /* #e1b77e */
+}
+/* stylelint-enable no-descending-specificity */
+
+/* Tabs on the dark band: white text, translucent baseline, sand active underline. */
+.section-tabs-dark .section-tabs-list {
+  border-bottom-color: rgb(255 255 255 / 35%);
+}
+
+.section-tabs-dark .section-tabs-tab {
+  color: rgb(255 255 255 / 80%);
+}
+
+.section-tabs-dark .section-tabs-tab:hover {
+  color: #fff;
+}
+
+.section-tabs-dark .section-tabs-tab[aria-selected="true"] {
+  color: #fff;
+  border-bottom-color: var(--brand-sand); /* #e1b77e */
+}
+
+.section-tabs-dark .section-tabs-tab:focus-visible {
+  outline-color: #fff;
 }

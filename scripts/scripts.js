@@ -423,8 +423,6 @@ export function decorateMain(main) {
   // directly; a no-op on pages without it. Runs after decorateSections (so the
   // `.section` wrappers exist) and before decorateBlocks (so blocks inside the
   // moved panel sections still decorate normally).
-  // eslint-disable-next-line no-console
-  console.log('[scripts] decorateMain → calling buildSectionTabs (eager)');
   buildSectionTabs(main);
   decorateBlocks(main);
   decorateButtons(main);

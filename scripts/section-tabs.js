@@ -10,8 +10,13 @@
  *   | Section Metadata |
  *   | tab | 2026 |
  *
- * Optional `| tab-group | <id> |` forces which widget a section belongs to, so
- * two independent tab sets on one page don't merge even if adjacent.
+ * Optional metadata keys (all read straight from the Section Metadata table):
+ *   | tab-group | <id> |  — forces which widget a section joins, so two
+ *                           independent tab sets on one page don't merge.
+ *   | tab-intro | true |   — marks a heading section that renders ABOVE the
+ *                           tablist (the widget's title), not as a tab/panel.
+ *   | tab-style | dark |   — paints the whole widget (heading + tablist +
+ *                           panels) as one full-bleed dark band.
  *
  * IMPORTANT — runs EAGERLY, during decorateMain(), before the page is revealed.
  * It reads the tab label straight from the section's Section Metadata table
@@ -20,12 +25,6 @@
  * render stacked inline. Sections without a `tab` value are untouched, so this
  * is a no-op on pages that don't use it (e.g. the homepage).
  */
-
-// Fires as soon as this module is imported/evaluated. If you DON'T see this in
-// the console, the browser is running a stale scripts.js that predates this
-// module (hard-reload with cache disabled). See SECTION_TABS_VERSION below.
-// eslint-disable-next-line no-console
-console.log('[section-tabs] module loaded');
 
 function slug(s) {
   return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -53,23 +52,31 @@ function readSectionMetadata(section) {
 }
 
 /**
- * Build one tabs widget from an array of adjacent tab sections.
- * @param {Element[]} sections tab sections in document order
- * @param {string[]} labels matching tab labels
+ * Build one tabs widget from a run of adjacent sections.
+ * @param {object} run { items, labels, intro, dark }
  * @param {number} widgetIndex index of this widget on the page (for unique ids)
  */
-function buildTabsWidget(sections, labels, widgetIndex) {
+function buildTabsWidget(run, widgetIndex) {
+  const { items: sections, labels, intro } = run;
   if (sections.length < 2) return; // a lone tab section isn't a tabbed widget
 
-  const first = sections[0];
+  // Anchor the widget where the first element of the run currently sits (the
+  // intro heading if present, otherwise the first tab section).
+  const anchor = intro || sections[0];
   const wrapper = document.createElement('div');
-  wrapper.className = 'section-tabs';
+  wrapper.className = run.dark ? 'section-tabs section-tabs-dark' : 'section-tabs';
+
+  anchor.parentElement.insertBefore(wrapper, anchor);
+
+  // Intro heading section renders above the tablist, inside the same band.
+  if (intro) {
+    intro.classList.add('section-tabs-intro');
+    wrapper.append(intro);
+  }
 
   const tablist = document.createElement('div');
   tablist.className = 'section-tabs-list';
   tablist.setAttribute('role', 'tablist');
-
-  first.parentElement.insertBefore(wrapper, first);
   wrapper.append(tablist);
 
   sections.forEach((section, i) => {
@@ -130,46 +137,41 @@ function buildTabsWidget(sections, labels, widgetIndex) {
  * intervenes.
  * @param {Element} main
  */
-// Bump this string whenever section-tabs.js changes so we can tell from the
-// browser console exactly which build is running (rules out stale/cached JS).
-const SECTION_TABS_VERSION = 'section-tabs v3 (eager, reads metadata table)';
-
 export default function buildSectionTabs(main) {
-  // eslint-disable-next-line no-console
-  console.log(`[section-tabs] buildSectionTabs() called — ${SECTION_TABS_VERSION}`);
-  if (!main) {
-    // eslint-disable-next-line no-console
-    console.warn('[section-tabs] no <main> element — aborting');
-    return;
-  }
+  if (!main) return;
   const sections = [...main.querySelectorAll(':scope > .section')];
-  const tabbed = sections.filter((s) => readSectionMetadata(s).tab);
-  // eslint-disable-next-line no-console
-  console.log(`[section-tabs] scanned ${sections.length} sections, ${tabbed.length} carry a "tab" metadata value`);
   const runs = [];
   let run = null;
 
+  const isContiguous = (r, section) => r.lastEl === section.previousElementSibling;
+
   sections.forEach((section) => {
     const meta = readSectionMetadata(section);
-    const label = meta.tab;
     const group = meta['tab-group'] || '';
-    if (label) {
-      if (run && run.group === group && run.lastEl === section.previousElementSibling) {
-        run.items.push(section);
-        run.labels.push(label);
-      } else {
+    const isTab = !!meta.tab;
+    const isIntro = meta['tab-intro'] === 'true' || meta['tab-intro'] === 'yes';
+
+    if (isTab || isIntro) {
+      // Start a fresh run when the group changes or the section isn't adjacent
+      // to the previous run member.
+      if (!run || run.group !== group || !isContiguous(run, section)) {
         run = {
-          group, items: [section], labels: [label], lastEl: null,
+          group, items: [], labels: [], intro: null, dark: false, lastEl: null,
         };
         runs.push(run);
       }
+      if (isIntro) {
+        run.intro = section;
+      } else {
+        run.items.push(section);
+        run.labels.push(meta.tab);
+      }
+      if (meta['tab-style'] === 'dark') run.dark = true;
       run.lastEl = section;
     } else {
       run = null;
     }
   });
 
-  // eslint-disable-next-line no-console
-  console.log(`[section-tabs] built ${runs.length} tab widget(s): ${runs.map((r) => `[${r.labels.join(', ')}]`).join(' ') || '(none)'}`);
-  runs.forEach((r, i) => buildTabsWidget(r.items, r.labels, i));
+  runs.forEach((r, i) => buildTabsWidget(r, i));
 }

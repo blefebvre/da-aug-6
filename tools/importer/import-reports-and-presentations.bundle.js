@@ -23,19 +23,46 @@ var CustomImportScript = (() => {
     default: () => import_reports_and_presentations_default
   });
 
-  // tools/importer/parsers/cards-feature.js
+  // tools/importer/parsers/cards-feature-reports.js
   function parse(element, { document }) {
-    const cards = Array.from(element.querySelectorAll(".teaser.ds-brand-teaser-card, .ds-brand-teaser-card"));
+    const innerGrid = element.querySelector(".aem-Grid") || element;
+    const cards = Array.from(innerGrid.children).filter((c) => c.querySelector && c.querySelector("h2"));
     const cells = [];
     cards.forEach((card) => {
-      const image = card.querySelector(".cmp-teaser__image img, img");
-      const title = card.querySelector(".cmp-teaser__title, h1, h2, h3, h4");
-      const description = card.querySelector(".cmp-teaser__description");
-      const ctaLinks = Array.from(card.querySelectorAll(".cmp-teaser__action-link, .cmp-teaser__action-container a"));
+      const image = [...card.querySelectorAll("img")].find((img) => !img.closest(".cmp-download")) || card.querySelector("img");
+      const title = card.querySelector("h2, h1, h3");
       const textCell = [];
-      if (title) textCell.push(title);
-      if (description) textCell.push(description);
-      ctaLinks.forEach((a) => textCell.push(a));
+      if (title) {
+        const h = document.createElement("h3");
+        h.textContent = title.textContent.trim();
+        textCell.push(h);
+      }
+      const seenText = /* @__PURE__ */ new Set();
+      Array.from(card.querySelectorAll("p")).filter((p) => p.textContent.trim() && !p.querySelector("a") && !p.closest(".cmp-download")).forEach((p) => {
+        const t = p.textContent.trim();
+        if (seenText.has(t)) return;
+        seenText.add(t);
+        const para = document.createElement("p");
+        para.textContent = t;
+        textCell.push(para);
+      });
+      const seenLink = /* @__PURE__ */ new Set();
+      const linkList = document.createElement("ul");
+      card.querySelectorAll("a[href]").forEach((a) => {
+        const href = a.getAttribute("href");
+        const text = a.textContent.trim();
+        if (!href || !text) return;
+        const key = `${text}|${href}`;
+        if (seenLink.has(key)) return;
+        seenLink.add(key);
+        const li = document.createElement("li");
+        const link = document.createElement("a");
+        link.setAttribute("href", href);
+        link.textContent = text;
+        li.appendChild(link);
+        linkList.appendChild(li);
+      });
+      if (linkList.children.length) textCell.push(linkList);
       cells.push([image || "", textCell]);
     });
     if (!cells.length) {
@@ -116,7 +143,13 @@ var CustomImportScript = (() => {
   function buildTabMetadata(doc, label) {
     return WebImporter.Blocks.createBlock(doc, {
       name: "Section Metadata",
-      cells: { tab: label, "tab-group": "overview" }
+      cells: { tab: label, "tab-group": "overview", "tab-style": "dark" }
+    });
+  }
+  function buildIntroMetadata(doc) {
+    return WebImporter.Blocks.createBlock(doc, {
+      name: "Section Metadata",
+      cells: { "tab-intro": "true", "tab-group": "overview", "tab-style": "dark" }
     });
   }
   function transform2(hookName, element, payload) {
@@ -129,6 +162,20 @@ var CustomImportScript = (() => {
     const panels = [...tabsRoot.querySelectorAll('[role="tabpanel"]')];
     if (!panels.length) return;
     const frag = doc.createDocumentFragment();
+    const allHeadings = [...element.querySelectorAll("h1, h2, h3")];
+    const introHeading = allHeadings.filter((h) => h.compareDocumentPosition(tabsRoot) & Node.DOCUMENT_POSITION_FOLLOWING).pop() || null;
+    frag.appendChild(doc.createElement("hr"));
+    if (introHeading) {
+      const h2 = doc.createElement("h2");
+      h2.textContent = introHeading.textContent.trim();
+      frag.appendChild(h2);
+      introHeading.remove();
+    } else {
+      const h2 = doc.createElement("h2");
+      h2.textContent = "Overview of documents";
+      frag.appendChild(h2);
+    }
+    frag.appendChild(buildIntroMetadata(doc));
     panels.forEach((panel, i) => {
       const label = tabLabels[i] || `Tab ${i + 1}`;
       frag.appendChild(doc.createElement("hr"));
@@ -257,7 +304,10 @@ var CustomImportScript = (() => {
     blocks: [
       {
         name: "cards-feature",
-        instances: ["#main .ds-brand-block-teaser-cards .grid-col-3"]
+        // The featured 3-card row only. `.ds-brand-container` distinguishes it
+        // from the bottom "You might also be interested in" cards, which are a
+        // separate `.grid-col-3.teaser-line-clamp-3` grid.
+        instances: ["#main .ds-brand-container.grid-col-3"]
       }
     ],
     // Only the "interested in" cards row is a styled block; everything else is

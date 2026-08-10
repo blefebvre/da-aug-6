@@ -2,16 +2,15 @@
 /* global WebImporter */
 
 // PARSER IMPORTS
-import cardsFeatureParser from './parsers/cards-feature.js';
+import cardsFeatureReportsParser from './parsers/cards-feature-reports.js';
 
 // TRANSFORMER IMPORTS
 import cleanupTransformer from './transformers/atlascopcogroup-cleanup.js';
 import reportsTabsTransformer from './transformers/atlascopcogroup-reports-tabs.js';
-import sectionsTransformer from './transformers/atlascopcogroup-sections.js';
 import dmImagesTransformer from './transformers/atlascopcogroup-dm-images.js';
 
 const parsers = {
-  'cards-feature': cardsFeatureParser,
+  'cards-feature': cardsFeatureReportsParser,
 };
 
 // PAGE TEMPLATE CONFIGURATION
@@ -24,7 +23,10 @@ const PAGE_TEMPLATE = {
   blocks: [
     {
       name: 'cards-feature',
-      instances: ['#main .ds-brand-block-teaser-cards .grid-col-3'],
+      // The featured 3-card row only. `.ds-brand-container` distinguishes it
+      // from the bottom "You might also be interested in" cards, which are a
+      // separate `.grid-col-3.teaser-line-clamp-3` grid.
+      instances: ['#main .ds-brand-container.grid-col-3'],
     },
   ],
   // Only the "interested in" cards row is a styled block; everything else is

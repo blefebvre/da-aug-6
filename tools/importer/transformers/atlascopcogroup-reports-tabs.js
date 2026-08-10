@@ -23,11 +23,22 @@
 const TransformHook = { beforeTransform: 'beforeTransform', afterTransform: 'afterTransform' };
 
 // Build a Section Metadata table (same shape WebImporter.Blocks.createBlock makes)
-// carrying the tab label + shared group id.
+// carrying the tab label + shared group id + a dark-style hint. section-tabs.js
+// reads `tab-style: dark` and paints the whole widget as one dark band.
 function buildTabMetadata(doc, label) {
   return WebImporter.Blocks.createBlock(doc, {
     name: 'Section Metadata',
-    cells: { tab: label, 'tab-group': 'overview' },
+    cells: { tab: label, 'tab-group': 'overview', 'tab-style': 'dark' },
+  });
+}
+
+// Section Metadata for the widget's intro heading ("Overview of documents"):
+// same group so it joins the run, `tab-intro` flags it as the heading (not a
+// tab/panel), and the dark hint keeps it in the same dark band.
+function buildIntroMetadata(doc) {
+  return WebImporter.Blocks.createBlock(doc, {
+    name: 'Section Metadata',
+    cells: { 'tab-intro': 'true', 'tab-group': 'overview', 'tab-style': 'dark' },
   });
 }
 
@@ -47,6 +58,32 @@ export default function transform(hookName, element, payload) {
 
   // Fragment holding the flattened tab sections, built in document order.
   const frag = doc.createDocumentFragment();
+
+  // Intro heading section ("Overview of documents"). The source renders this
+  // heading in the same dark band as the tabs. Find the nearest heading that
+  // PRECEDES the tabs widget anywhere in the document and MOVE it (don't clone —
+  // cloning leaves the original behind as a duplicate) into its own tab-group
+  // section flagged tab-intro. A section break precedes it so the render-time
+  // grouper starts a clean run.
+  const allHeadings = [...element.querySelectorAll('h1, h2, h3')];
+  const introHeading = allHeadings
+    .filter((h) => (h.compareDocumentPosition(tabsRoot) & Node.DOCUMENT_POSITION_FOLLOWING))
+    .pop() || null;
+
+  frag.appendChild(doc.createElement('hr'));
+  if (introHeading) {
+    // Reuse the real heading node (moved into the fragment), so no copy is left
+    // behind in the preceding section.
+    const h2 = doc.createElement('h2');
+    h2.textContent = introHeading.textContent.trim();
+    frag.appendChild(h2);
+    introHeading.remove();
+  } else {
+    const h2 = doc.createElement('h2');
+    h2.textContent = 'Overview of documents';
+    frag.appendChild(h2);
+  }
+  frag.appendChild(buildIntroMetadata(doc));
 
   panels.forEach((panel, i) => {
     const label = tabLabels[i] || `Tab ${i + 1}`;
