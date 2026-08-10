@@ -80,6 +80,22 @@ function altToLinkText(alt) {
 }
 // ---- End canonical helpers ----
 
+// Force an absolute https:// URL. Scene7 serves protocol-relative src
+// (`//atlascopco.scene7.com/...`); if that survives into the published doc,
+// Document Authoring treats the leading `//host/path` as a same-origin path
+// and strips the host, leaving `/is/image/...`. The render-time auto-block
+// then rejects it (its detectDynamicMediaUrl guard requires an absolute or
+// protocol-relative URL), so the <picture> is never built and NOTHING renders.
+// Emitting an explicit https:// URL here keeps the host intact through publish.
+function toAbsoluteHttps(url) {
+  if (url.startsWith('//')) return `https:${url}`;
+  if (/^https?:\/\//i.test(url)) return url;
+  // Root-relative DM path (e.g. already-stripped `/is/image/...`) — restore the
+  // canonical Scene7 host so the URL is self-describing and publish-safe.
+  if (url.startsWith('/is/image/')) return `https://atlascopco.scene7.com${url}`;
+  return url;
+}
+
 export default function transform(hookName, element, payload) {
   if (hookName !== 'afterTransform') return;
   const doc = element.ownerDocument;
@@ -96,13 +112,14 @@ export default function transform(hookName, element, payload) {
     // position; the auto-block translates the sentinel back to alt="" via
     // linkTextToAlt() so screen readers correctly skip decorative images.
     const alt = img.getAttribute('alt') || '';
+    const absSrc = toAbsoluteHttps(src);
 
     // Linked image (incl. parser-wrapped `<a><picture><img></picture></a>`).
     // Stash DM URL in title, keep outer href; setting textContent replaces
     // any wrapper descendants with the link text.
     const linkedAnchor = findLinkedDmCarrier(img);
     if (linkedAnchor) {
-      linkedAnchor.setAttribute('title', src);
+      linkedAnchor.setAttribute('title', absSrc);
       linkedAnchor.textContent = altToLinkText(alt);
       return;
     }
@@ -118,7 +135,7 @@ export default function transform(hookName, element, payload) {
 
     // Unlinked image: create an anchor whose href is the DM URL.
     const a = doc.createElement('a');
-    a.href = src;
+    a.setAttribute('href', absSrc);
     a.textContent = altToLinkText(alt);
     img.replaceWith(a);
   });

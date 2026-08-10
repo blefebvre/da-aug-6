@@ -402,6 +402,12 @@ var CustomImportScript = (() => {
   function altToLinkText(alt) {
     return alt || EMPTY_ALT_SENTINEL;
   }
+  function toAbsoluteHttps(url) {
+    if (url.startsWith("//")) return `https:${url}`;
+    if (/^https?:\/\//i.test(url)) return url;
+    if (url.startsWith("/is/image/")) return `https://atlascopco.scene7.com${url}`;
+    return url;
+  }
   function transform3(hookName, element, payload) {
     if (hookName !== "afterTransform") return;
     const doc = element.ownerDocument;
@@ -409,9 +415,10 @@ var CustomImportScript = (() => {
       const src = img.getAttribute("src") || "";
       if (!detectDynamicMediaUrl(src)) return;
       const alt = img.getAttribute("alt") || "";
+      const absSrc = toAbsoluteHttps(src);
       const linkedAnchor = findLinkedDmCarrier(img);
       if (linkedAnchor) {
-        linkedAnchor.setAttribute("title", src);
+        linkedAnchor.setAttribute("title", absSrc);
         linkedAnchor.textContent = altToLinkText(alt);
         return;
       }
@@ -421,7 +428,7 @@ var CustomImportScript = (() => {
         return;
       }
       const a = doc.createElement("a");
-      a.href = src;
+      a.setAttribute("href", absSrc);
       a.textContent = altToLinkText(alt);
       img.replaceWith(a);
     });
