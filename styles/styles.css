@@ -358,7 +358,7 @@ main .default-content-wrapper ol.breadcrumb {
   flex-wrap: wrap;
   align-items: center;
   gap: 0;
-  margin: 0 0 24px;
+  margin: 0 0 56px; /* source: ~56px below the breadcrumb before the eyebrow */
   padding: 0;
   list-style: none;
   font-size: 14px;
@@ -399,6 +399,27 @@ main .default-content-wrapper p.eyebrow {
   letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--brand-teal-dark); /* #04424D */
+}
+
+/* Hero lede: the intro paragraph right after the H1. Source renders it as a
+   larger (24px) paragraph held to a ~818px column (≈63% of the content width),
+   not a full-width body paragraph. */
+main .default-content-wrapper p.hero-lede {
+  max-width: 818px;
+  margin: 16px 0 0;
+  font-size: 24px;
+  line-height: 1.35; /* ~130px over 4 wrapped lines, matching source */
+}
+
+/* Hero vertical rhythm: the source's top-of-page block sits a little lower with
+   tighter eyebrow→H1 spacing. Scoped to the hero wrapper (the one holding the
+   breadcrumb) so it never affects other pages/sections. */
+main > .section:first-of-type:has(> .default-content-wrapper > ol.breadcrumb) {
+  padding-top: 32px;
+}
+
+main .default-content-wrapper:has(> ol.breadcrumb) > h1 {
+  margin-top: 0;
 }
 
 /* ---------------------------------------------------------------- section tabs

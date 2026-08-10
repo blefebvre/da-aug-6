@@ -414,15 +414,16 @@ function decorateButtons(main) {
  * @param {Element} main The main element
  */
 /**
- * Tag the top-of-page breadcrumb trail and section eyebrow so global CSS can
- * style them. Both are plain default content (no block): the breadcrumb is an
- * <ol> of ancestor links; the eyebrow is the short <p> that introduces the H1.
- * Scoped to the FIRST section's default-content-wrapper, so it never touches
- * block content (e.g. the homepage hero auto-block) and is a no-op on pages
- * that don't have this top-of-page pattern.
+ * Tag the top-of-page hero default content (breadcrumb, eyebrow, lede) so global
+ * CSS can style them. All are plain default content (no block): the breadcrumb
+ * is an <ol> of ancestor links; the eyebrow is the short <p> before the H1; the
+ * lede is the intro <p> right after the H1 (source renders it as a larger,
+ * column-constrained hero paragraph). Scoped to the FIRST section's
+ * default-content-wrapper, so it never touches block content (e.g. the homepage
+ * hero auto-block) and is a no-op on pages without this top-of-page pattern.
  * @param {Element} main
  */
-function decorateBreadcrumbAndEyebrow(main) {
+function decorateHeroIntro(main) {
   const dc = main.querySelector(':scope > .section > .default-content-wrapper');
   if (!dc) return;
 
@@ -437,11 +438,18 @@ function decorateBreadcrumbAndEyebrow(main) {
     }
   }
 
-  // Eyebrow: the short <p> immediately preceding the page <h1>.
   const h1 = dc.querySelector(':scope > h1');
-  const prev = h1 && h1.previousElementSibling;
-  if (prev && prev.tagName === 'P' && prev.textContent.trim()) {
-    prev.classList.add('eyebrow');
+  if (h1) {
+    // Eyebrow: the short <p> immediately preceding the page <h1>.
+    const prev = h1.previousElementSibling;
+    if (prev && prev.tagName === 'P' && prev.textContent.trim()) {
+      prev.classList.add('eyebrow');
+    }
+    // Lede: the intro <p> immediately following the H1 (hero paragraph).
+    const next = h1.nextElementSibling;
+    if (next && next.tagName === 'P' && next.textContent.trim()) {
+      next.classList.add('hero-lede');
+    }
   }
 }
 
@@ -456,7 +464,7 @@ export function decorateMain(main) {
   // `.section` wrappers exist) and before decorateBlocks (so blocks inside the
   // moved panel sections still decorate normally).
   buildSectionTabs(main);
-  decorateBreadcrumbAndEyebrow(main);
+  decorateHeroIntro(main);
   decorateBlocks(main);
   decorateButtons(main);
 }
