@@ -55,6 +55,24 @@ so `loading="lazy"` never fires and it never loads — permanently blank below t
 Always reserve space with an explicit `aspect-ratio` on block image slots
 (see `columns-media.css`). The above-the-fold hero is rendered `eager` by the auto-block.
 
+**Oversized OG/metadata image blocks DA preview (>20 MB):** DA refuses to preview a page
+whose source references an image over 20 MB, with:
+`Unable to preview '/…​.md': source contains large image: … exceeds allowed limit of 20.00MB`.
+The culprit is usually the page's `og:image` — `createMetadata` copies the source's
+og:image URL verbatim into the Metadata block's "Image" row. reports-and-presentations'
+og:image was a raw AEM DAM original (`…/Annual-General-Meeting-2023.jpg`, 33.7 MB). The DAM
+host IGNORES `?width=`/`?wid=` (always serves the full original), so it can't be downscaled
+via URL, and re-encoding bytes in the in-browser importer isn't feasible. Fix:
+`tools/importer/transformers/atlascopcogroup-metadata-image.js` — a Scene7 og:image is
+capped with `?wid=1200`; a non-DM raw original has its Metadata "Image" ROW dropped (page
+falls back to a default OG image). GOTCHA: `createMetadata` builds the Metadata block as a
+`<table>` (th "Metadata" + `<tr><td>Image</td><td><img></td>`), NOT `.metadata` divs (those
+appear later, post `md2da`), and it runs in the import script's step 5 — AFTER the
+afterTransform hook. So this transformer must be invoked EXPLICITLY right after
+`WebImporter.rules.createMetadata(...)`, matching on the `<table>`, not registered in the
+`transformers` array. Verify after import: `grep -c 'Annual-General-Meeting-2023'` == 0 and
+0 raw `<img>` / `content/dam/*.jpg` refs remain (Scene7 anchors are bounded at render).
+
 ## Import pipeline (how to re-import content)
 - Runner: `node <excat>/skills/excat-content-import/scripts/run-bulk-import.js
   --import-script tools/importer/import-homepage.bundle.js --urls tools/importer/urls-homepage.txt`

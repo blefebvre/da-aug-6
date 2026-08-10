@@ -291,6 +291,51 @@ var CustomImportScript = (() => {
     });
   }
 
+  // tools/importer/transformers/atlascopcogroup-metadata-image.js
+  var TransformHook3 = { beforeTransform: "beforeTransform", afterTransform: "afterTransform" };
+  var OG_IMAGE_WIDTH = 1200;
+  function isScene7(url) {
+    try {
+      return new URL(url, "https://x/").pathname.startsWith("/is/image/");
+    } catch {
+      return false;
+    }
+  }
+  function boundScene7(url) {
+    const normalized = url.startsWith("//") ? `https:${url}` : url;
+    const qIdx = normalized.indexOf("?");
+    const base = qIdx >= 0 ? normalized.slice(0, qIdx) : normalized;
+    const params = (qIdx >= 0 ? normalized.slice(qIdx + 1) : "").split("&").filter((p) => p && !/^wid=/.test(p) && !/^fmt=/.test(p));
+    params.push(`wid=${OG_IMAGE_WIDTH}`, "fmt=jpg");
+    return `${base}?${params.join("&")}`;
+  }
+  function transform4(hookName, element, payload) {
+    if (hookName !== TransformHook3.afterTransform) return;
+    const tables = [...element.querySelectorAll("table")].filter((t) => {
+      const first = t.querySelector("th, td");
+      return first && first.textContent.trim().toLowerCase() === "metadata";
+    });
+    tables.forEach((table) => {
+      [...table.querySelectorAll("tr")].forEach((row) => {
+        const cells = [...row.children];
+        if (cells.length < 2) return;
+        if (cells[0].textContent.trim().toLowerCase() !== "image") return;
+        const img = cells[1].querySelector("img");
+        const src = img && (img.getAttribute("src") || "");
+        if (!src) {
+          row.remove();
+          return;
+        }
+        if (isScene7(src)) {
+          img.setAttribute("src", boundScene7(src));
+          return;
+        }
+        console.warn("Dropping oversized/unbounded metadata image:", src);
+        row.remove();
+      });
+    });
+  }
+
   // tools/importer/import-reports-and-presentations.js
   var parsers = {
     "cards-feature": parse
@@ -374,6 +419,11 @@ var CustomImportScript = (() => {
       WebImporter.rules.createMetadata(main, document);
       WebImporter.rules.transformBackgroundImages(main, document);
       WebImporter.rules.adjustImageUrls(main, url, params.originalURL);
+      try {
+        transform4("afterTransform", main, { ...payload, template: PAGE_TEMPLATE });
+      } catch (e) {
+        console.error("metadata-image transformer failed:", e);
+      }
       const rawPath = new URL(params.originalURL).pathname.replace(/\/$/, "").replace(/\.html?$/, "");
       const path = WebImporter.FileUtils.sanitizePath(rawPath === "" ? "/index" : rawPath);
       return [{

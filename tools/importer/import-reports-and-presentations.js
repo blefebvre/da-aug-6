@@ -8,6 +8,7 @@ import cardsFeatureReportsParser from './parsers/cards-feature-reports.js';
 import cleanupTransformer from './transformers/atlascopcogroup-cleanup.js';
 import reportsTabsTransformer from './transformers/atlascopcogroup-reports-tabs.js';
 import dmImagesTransformer from './transformers/atlascopcogroup-dm-images.js';
+import metadataImageTransformer from './transformers/atlascopcogroup-metadata-image.js';
 
 const parsers = {
   'cards-feature': cardsFeatureReportsParser,
@@ -110,6 +111,15 @@ export default {
     WebImporter.rules.createMetadata(main, document);
     WebImporter.rules.transformBackgroundImages(main, document);
     WebImporter.rules.adjustImageUrls(main, url, params.originalURL);
+
+    // 5b. Cap/replace oversized page-metadata (OG) images. Runs AFTER
+    // createMetadata built the Metadata block. The source og:image here is a
+    // 33.7 MB raw DAM original that DA refuses to preview (>20 MB limit).
+    try {
+      metadataImageTransformer('afterTransform', main, { ...payload, template: PAGE_TEMPLATE });
+    } catch (e) {
+      console.error('metadata-image transformer failed:', e);
+    }
 
     // 6. Sanitized path (never the root here, so no /index special-case needed).
     const rawPath = new URL(params.originalURL).pathname
