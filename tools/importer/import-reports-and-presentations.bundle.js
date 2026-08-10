@@ -248,8 +248,10 @@ var CustomImportScript = (() => {
           const titleEl = item.querySelector('.cmp-accordion__title, .cmp-accordion__button, [class*="title"], h3');
           const quarterLabel = titleEl ? titleEl.textContent.trim() : "";
           if (!quarterLabel) return;
+          const btn = item.querySelector(".cmp-accordion__button");
+          const expanded = item.hasAttribute("data-cmp-expanded") || !!item.querySelector(".cmp-accordion__button--expanded") || btn && btn.getAttribute("aria-expanded") === "true";
           const body = buildQuarterBody(doc, item);
-          rows.push([quarterLabel, body]);
+          rows.push([quarterLabel, expanded ? "expanded" : "", body]);
         });
         if (rows.length) {
           const accordion = WebImporter.Blocks.createBlock(doc, { name: "accordion", cells: rows });

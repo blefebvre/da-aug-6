@@ -131,19 +131,9 @@ function buildTabsWidget(run, widgetIndex) {
   const tabs = [...tablist.children];
   const panels = [...wrapper.querySelectorAll(':scope > .section-tabs-panel')];
 
-  // Each accordion auto-opens its own first item; but only the ACTIVE tab's
-  // first item should be open (source behaviour: exactly 1 expanded overall).
-  // Collapse every accordion item in inactive panels; in the active panel keep
-  // only the first item open.
-  const syncAccordions = (activeIndex) => {
-    panels.forEach((panel, i) => {
-      const items = [...panel.querySelectorAll('.accordion-item')];
-      items.forEach((item, j) => {
-        item.open = i === activeIndex && j === 0;
-      });
-    });
-  };
-
+  // Each accordion inside a panel honours its OWN authored open state (see
+  // blocks/accordion) — the source expands specific quarters per tab, so tab
+  // switching must NOT reset it. Just show/hide panels.
   const activate = (index, focus = true) => {
     tabs.forEach((t, i) => {
       const selected = i === index;
@@ -151,12 +141,8 @@ function buildTabsWidget(run, widgetIndex) {
       t.tabIndex = selected ? 0 : -1;
       panels[i].hidden = !selected;
     });
-    syncAccordions(index);
     if (focus) tabs[index].focus();
   };
-
-  // Initial sync: only the first panel's first accordion item stays open.
-  syncAccordions(0);
 
   tabs.forEach((tab, i) => {
     tab.addEventListener('click', () => activate(i, false));

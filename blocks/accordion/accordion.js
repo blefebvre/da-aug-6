@@ -1,14 +1,21 @@
 /*
  * Accordion block.
  *
- * Authored as a 2-column table: each row is [ summary | details ]. The first
- * cell is the header label; the second cell is the collapsible body. Rendered
- * with native <details>/<summary> so it's accessible and keyboard-operable with
- * no extra JS state. The first item is open by default (matches the source,
- * where the first quarter of the active tab is expanded) — EXCEPT when this
- * accordion lives inside a hidden tab panel (section-based tabs), where nothing
- * should be expanded until that tab is selected. section-tabs.js re-syncs the
- * open item when a tab is activated, so overall exactly one item is expanded.
+ * Authored as a table whose rows are [ label | expanded-flag | body ]:
+ *   - cell 0: the header label (quarter title)
+ *   - cell 1: the expanded flag — text "expanded" opens the item on load,
+ *     empty leaves it collapsed. This carries the SOURCE's authored open state
+ *     (the source expands specific quarters, e.g. Q2 2026 and Q4 2025 — it is
+ *     NOT a "first item" rule), so the block reproduces it exactly.
+ *   - last cell: the collapsible body.
+ * Legacy 2-column rows ([ label | body ]) are still accepted; without a flag
+ * cell nothing auto-opens.
+ *
+ * Rendered with native <details>/<summary> so it's accessible and
+ * keyboard-operable with no extra JS state. Each item keeps its own open state;
+ * inside section-based tabs, a hidden panel's open items simply stay open and
+ * become visible when that tab is selected (matching the source, where every
+ * tab carries its own authored expansion).
  *
  * Used by the reports-and-presentations "Overview of documents" tabs: each tab
  * panel hosts one accordion, one item per quarter; each body holds the
@@ -17,19 +24,18 @@
  * @param {Element} block the accordion block element
  */
 export default function decorate(block) {
-  // Don't auto-open the first item when this accordion is inside a hidden tab
-  // panel — otherwise every tab's first item counts as expanded. section-tabs.js
-  // opens the first item of the active panel (and re-syncs on tab switch).
-  const inHiddenPanel = !!block.closest('.section-tabs-panel[hidden]');
-
-  [...block.children].forEach((row, i) => {
+  [...block.children].forEach((row) => {
     const cells = [...row.children];
     const label = cells[0];
-    const body = cells[1];
+    // 3-cell shape: [label | flag | body]. 2-cell legacy: [label | body].
+    const hasFlagCell = cells.length >= 3;
+    const flag = hasFlagCell ? cells[1] : null;
+    const body = cells[cells.length - 1];
+    const expanded = !!flag && /^expanded$/i.test(flag.textContent.trim());
 
     const details = document.createElement('details');
     details.className = 'accordion-item';
-    if (i === 0 && !inHiddenPanel) details.open = true; // first item expanded
+    if (expanded) details.open = true; // honour the source's authored open state
 
     const summary = document.createElement('summary');
     summary.className = 'accordion-item-label';
@@ -38,7 +44,7 @@ export default function decorate(block) {
 
     const content = document.createElement('div');
     content.className = 'accordion-item-body';
-    if (body) {
+    if (body && body !== label) {
       while (body.firstChild) content.append(body.firstChild);
     }
 

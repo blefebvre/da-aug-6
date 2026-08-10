@@ -150,7 +150,13 @@ export default function transform(hookName, element, payload) {
     frag.appendChild(doc.createElement('hr'));
 
     // Each accordion item = one quarter. Emit an `accordion` block whose rows
-    // are [ quarter-label | body ] (body = date + h4 groups + link lists).
+    // are [ quarter-label | expanded-flag | body ] (body = date + h4 groups +
+    // link lists). The expanded flag carries the source's AUTHORED open state
+    // (data-cmp-expanded / button--expanded / aria-expanded) so the block can
+    // reproduce it exactly — the source opens specific quarters (Q2 2026,
+    // Q4 2025), NOT a "first item" rule. The flag is a simple middle cell so the
+    // rich body stays the last column (matching the serialization that already
+    // round-trips). Closed items get an empty flag cell.
     const items = [...panel.querySelectorAll('.cmp-accordion__item')];
     if (items.length) {
       const rows = [];
@@ -158,8 +164,12 @@ export default function transform(hookName, element, payload) {
         const titleEl = item.querySelector('.cmp-accordion__title, .cmp-accordion__button, [class*="title"], h3');
         const quarterLabel = titleEl ? titleEl.textContent.trim() : '';
         if (!quarterLabel) return;
+        const btn = item.querySelector('.cmp-accordion__button');
+        const expanded = item.hasAttribute('data-cmp-expanded')
+          || !!item.querySelector('.cmp-accordion__button--expanded')
+          || (btn && btn.getAttribute('aria-expanded') === 'true');
         const body = buildQuarterBody(doc, item);
-        rows.push([quarterLabel, body]);
+        rows.push([quarterLabel, expanded ? 'expanded' : '', body]);
       });
       if (rows.length) {
         const accordion = WebImporter.Blocks.createBlock(doc, { name: 'accordion', cells: rows });
