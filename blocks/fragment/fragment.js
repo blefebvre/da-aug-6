@@ -25,10 +25,19 @@ export async function loadFragment(path) {
       const main = document.createElement('main');
       main.innerHTML = await resp.text();
 
-      // reset base path for media to fragment base
+      // Reset base path for media to the fragment's base. A fragment fetched
+      // for a deep page (e.g. /content/en/investors/x) still carries media URLs
+      // relative to the FRAGMENT's own location, not the current page — without
+      // rebasing, `images/logo.png` in /content/footer resolves against the
+      // page path and 404s. Rebase both the DA-published `./media_*` form and
+      // the local relative `images/*` form against the fragment path.
+      const fragmentBase = new URL(path, window.location);
       const resetAttributeBase = (tag, attr) => {
-        main.querySelectorAll(`${tag}[${attr}^="./media_"]`).forEach((elem) => {
-          elem[attr] = new URL(elem.getAttribute(attr), new URL(path, window.location)).href;
+        main.querySelectorAll(`${tag}[${attr}]`).forEach((elem) => {
+          const val = elem.getAttribute(attr) || '';
+          if (/^(\.\/media_|\.?\/?images\/)/.test(val)) {
+            elem[attr] = new URL(val, fragmentBase).href;
+          }
         });
       };
       resetAttributeBase('img', 'src');

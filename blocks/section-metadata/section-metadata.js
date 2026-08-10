@@ -35,7 +35,14 @@ export default function decorate(block) {
         });
         section.dataset.sectionStyle = value;
       } else {
-        section.dataset[key.replace(/[^a-z0-9]+/g, '-')] = value;
+        // Assign via the camelCase form: DOMStringMap setters reject hyphenated
+        // property names (`dataset['tab-group']` throws), so a key like
+        // "tab-group" must be written as `dataset.tabGroup` (→ data-tab-group).
+        const camelKey = key
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .replace(/-([a-z0-9])/g, (_, c) => c.toUpperCase());
+        if (camelKey) section.dataset[camelKey] = value;
       }
     });
   }

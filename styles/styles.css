@@ -347,3 +347,77 @@ main .section.filled-gold {
     line-height: 48px;
   }
 }
+
+/* ---------------------------------------------------------------- section tabs
+   Section-based tabs (see scripts/section-tabs.js). A run of sections flagged
+   with `| tab | <label> |` section metadata becomes one tabbed widget:
+   .section-tabs > .section-tabs-list (buttons) + N .section-tabs-panel sections.
+   These rules MUST live in the eager styles.css (not lazy-styles.css): the tabs
+   widget is built eagerly in decorateMain, so its hide/show + tablist styling
+   has to be present before paint. If it were lazy-loaded, the panels would
+   render stacked inline until the lazy CSS arrived (or forever, if that CSS is
+   delayed/edge-cached-stale) — the "content laid out inline, no tabs" symptom.
+   Values measured from the source .cmp-tabs (18px/600 tabs, grey baseline). */
+
+.section-tabs {
+  margin: 40px auto;
+  max-width: var(--section-max-width);
+  padding: 0 30px;
+}
+
+/* Tablist: horizontal, wraps on overflow, grey baseline under all tabs. */
+.section-tabs-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin: 0 0 32px;
+  border-bottom: 1px solid rgb(164 170 180);
+}
+
+.section-tabs-tab {
+  margin: 0 0 -1px; /* overlap the tablist baseline */
+  padding: 14px 18px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: none;
+  font-family: var(--body-font-family);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.section-tabs-tab:hover {
+  color: var(--brand-teal);
+}
+
+.section-tabs-tab[aria-selected="true"] {
+  color: var(--brand-teal);
+  border-bottom-color: var(--brand-teal);
+}
+
+.section-tabs-tab:focus-visible {
+  outline: 2px solid var(--brand-teal);
+  outline-offset: -2px;
+}
+
+/* Panels are ordinary sections; hide the inactive ones. The tab widget owns its
+   panels' vertical rhythm, so collapse the default section margins. */
+.section-tabs .section-tabs-panel {
+  margin: 0;
+}
+
+.section-tabs .section-tabs-panel[hidden] {
+  display: none;
+}
+
+/* The widget already provides the outer gutter, so let panel content span the
+   full widget width instead of re-applying the section column. */
+.section-tabs .section-tabs-panel > .default-content-wrapper,
+.section-tabs .section-tabs-panel > div {
+  max-width: none;
+  padding-left: 0;
+  padding-right: 0;
+}

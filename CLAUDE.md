@@ -103,3 +103,53 @@ The preview iframe defaults to a narrow width (~708px) = the mobile branch. **As
 `window.innerWidth >= 900` (or >=1300 for the user's 1308 comparisons) inside the iframe
 before trusting desktop measurements**, and sample computed styles after ~1s for any
 transition. Prefer `browser_evaluate` returning compact JSON over screenshots (token cost).
+
+## Section-based tabs (Overview of documents on reports-and-presentations)
+Reusable pattern: any run of adjacent sections whose Section Metadata carries
+`| tab | <label> |` (+ optional `| tab-group | <id> |`) is grouped into ONE tabbed
+widget. Files: `scripts/section-tabs.js` (grouping + a11y keyboard nav),
+`styles/lazy-styles.css` (`.section-tabs*` styles), and the import transformer
+`tools/importer/transformers/atlascopcogroup-reports-tabs.js` (flattens the source
+`.cmp-tabs` → per-year sections of group `<h3>` + document `<ul>` + a Section Metadata
+`tab`/`tab-group` table).
+
+### HARNESS LESSON — autoblocking must run EAGERLY, not in loadLazy (this caused the tabs to render inline)
+The custom page-decoration hooks (`buildAutoBlocks`, and anything that regroups
+sections like the tabs) MUST run inside `decorateMain()` during the **eager** phase —
+placed after `decorateSections(main)` and before `decorateBlocks(main)`. The first
+version called the tab grouper in `loadLazy` AFTER `await loadSections(main)`. That is
+too late: `decorateSections` reveals the sections (`body.appear`) before the lazy phase,
+so the tab sections render **stacked inline** and only regroup later — and if the lazy
+phase is delayed or a section load stalls (e.g. the source's Scene7 doc-thumbnail images
+return 403 and hang `loadSection`), they may never regroup at all → exactly the "no
+autoblocking, content laid out inline" symptom. Moving the grouper into `decorateMain`
+(eager, pre-paint) fixed it. **Rule: DOM-restructuring auto-blocking belongs in the eager
+`decorateMain` pipeline, never in `loadLazy`.**
+
+Related detail: hide inactive tab panels with the `hidden` ATTRIBUTE (+ CSS
+`.section-tabs-panel[hidden]{display:none}`), not inline `style.display` — `loadSection`
+sets `section.style.display = null` when a section loads, which would clobber inline
+display but leaves the `hidden` attribute (and its CSS rule) intact.
+
+Also: read the tab label straight from the section's `.section-metadata` table in
+section-tabs.js rather than waiting for the section-metadata BLOCK to set `data-tab`
+— don't create a cross-block ordering dependency during eager decoration.
+
+### section-metadata dataset gotcha (fixed)
+`blocks/section-metadata/section-metadata.js` stores non-`style` keys as `data-*`.
+`dataset['tab-group'] = v` THROWS (DOMStringMap rejects hyphenated property names) — must
+convert kebab→camelCase (`dataset.tabGroup`). Applies to any hyphenated metadata key.
+
+### Static `drafts/*.html` do NOT run the EDS pipeline in this setup
+A raw `drafts/foo.html` served at `/drafts/foo.html` is returned as-is: no `scripts.js`,
+no section decoration, no autoblocking (confirmed: `document.querySelector('script[src*=scripts.js]')`
+is null, sections keep no `.section` class). To validate blocks/decoration you must go
+through real content at `/content/<path>` (which the aem-up server decorates), not a draft
+HTML file. Build the importer output and view `/content/...` instead.
+
+## Import: bundle + eslint
+Generated `*.bundle.js` importer files are now in `.eslintignore` (esbuild IIFE output
+isn't lint-clean and shouldn't be). Remember to rebuild the bundle after editing any
+parser/transformer, and point run-bulk-import at the `.bundle.js` (see the DM/Scene7
+import notes above). New per-template importer for this page:
+`tools/importer/import-reports-and-presentations.js` (+ bundle, urls file).
