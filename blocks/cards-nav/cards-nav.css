@@ -13,6 +13,18 @@
   padding: 0 30px;
 }
 
+/* Pull the quicklink strip up over the hero's lower edge (source: the hero
+   teaser carries margin-bottom:-60px so the strip overlaps by 60px). Applied
+   at desktop where the hero and strip stack under one section; on mobile the
+   strip sits flush below the hero. z-index keeps it above the hero scrim. */
+@media (width >= 900px) {
+  .cards-nav-container .cards-nav-wrapper {
+    position: relative;
+    z-index: 3;
+    margin-top: -60px;
+  }
+}
+
 /* Grid: flush equal columns (source grid gap 1px 0px => 0 column gap). Mobile stacks. */
 .cards-nav > ul {
   list-style: none;

@@ -28,9 +28,28 @@
 .columns-media-img-col img {
   display: block;
   width: 100%;
+
+  /* Reserve height with an explicit aspect-ratio. These images arrive as
+     Scene7 anchors with no intrinsic dimensions, so `height: auto` would
+     resolve to 0 before the bytes load — and because the box is then 0px tall
+     it never enters the viewport, so `loading="lazy"` never fires and the
+     image never loads at all. A fixed ratio breaks that deadlock and also
+     eliminates CLS. Default is the teaser/podcast landscape ratio; the quote
+     portrait overrides below. */
+  aspect-ratio: 1.5;
   height: auto;
   object-fit: cover;
   border-radius: 24px 24px 24px 0; /* source: rounded except bottom-left */
+}
+
+/* Podcast promo banner is a touch wider (source 624x376 ≈ 1.66). */
+.columns-media-promo .columns-media-img-col img {
+  aspect-ratio: 1.66;
+}
+
+/* CEO portrait is essentially square (source 220x218 ≈ 1.01). */
+.columns-media-quote .columns-media-img-col img {
+  aspect-ratio: 1.01;
 }
 
 /* ------------------------------------------------------- text: spacing */

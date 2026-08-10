@@ -327,3 +327,23 @@ main .section.filled-gold {
   margin: 0;
   padding: 40px 0;
 }
+
+/* Section-title default-content H2s (the headings that introduce a cards block)
+   are 40px on the source, not the 32px global desktop h2. This matches the
+   carousel section title, which already scales up the same way. Scoped to the
+   section containers that carry these intro headings so block/card headings and
+   the cards-nav H2/H3 (correctly 32px) are unaffected. */
+@media (width >= 900px) {
+  main .section.cards-feature-container > .default-content-wrapper h2,
+  main .section.cards-news-container > .default-content-wrapper h2,
+  main .section.cards-event-container > .default-content-wrapper h2,
+  main .section.cards-stats-container > .default-content-wrapper h2 {
+    font-size: 40px;
+    line-height: 56px;
+  }
+
+  /* Recent press releases uses a tighter 48px leading in the source. */
+  main .section.cards-news-container > .default-content-wrapper h2 {
+    line-height: 48px;
+  }
+}

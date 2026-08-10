@@ -44,6 +44,19 @@ const DM_BREAKPOINTS = [
   { width: 750 }, // mobile / fallback (no media)
 ];
 
+// Width candidates for a real responsive srcset. The browser picks the
+// smallest rendition that covers the slot at the device pixel ratio, so a
+// half-width band gets ~750–1000px and a full-bleed hero gets ~1600–2000px
+// off the same markup — no more pinning every image to 750 (blurry) or 2000
+// (wasteful). Emitted as `w` descriptors paired with a `sizes` hint.
+const DM_SRCSET_WIDTHS = [640, 750, 1000, 1280, 1600, 2000, 2500];
+
+// Default slot hint. Most DM images here are full-bleed (hero, sustainability)
+// or occupy a full content column on mobile; blocks that render a narrower
+// slot (columns-media, cards, carousel) pass a tighter `sizes` via the
+// data-dm-sizes attribute, read in renderScene7Picture below.
+const DM_DEFAULT_SIZES = '100vw';
+
 // ---- Canonical helpers (keep in sync with dm-scene7-helpers.js) ----
 function detectDynamicMediaUrl(urlStr) {
   // Reject relative URLs up front — without this guard, the auto-block
@@ -130,30 +143,49 @@ function linkTextToAlt(linkText) {
 }
 
 // ---- Rendering ----
-function appendSource(picture, { type, srcset, media }) {
+function appendSource(picture, {
+  type, srcset, media, sizes,
+}) {
   const source = document.createElement('source');
   if (type) source.type = type;
   source.srcset = srcset;
   if (media) source.setAttribute('media', media);
+  if (sizes) source.setAttribute('sizes', sizes);
   picture.append(source);
 }
 
-function renderScene7Picture(src, alt) {
+// Build a width-descriptor srcset ("url 640w, url 750w, ...") so the browser
+// fetches a rendition sized to the actual slot rather than a fixed width.
+function buildScene7Srcset(src, format) {
+  return DM_SRCSET_WIDTHS
+    .map((w) => `${buildScene7Rendition(src, { width: w, format })} ${w}w`)
+    .join(', ');
+}
+
+function renderScene7Picture(src, alt, options = {}) {
+  const sizes = options.sizes || DM_DEFAULT_SIZES;
   const picture = document.createElement('picture');
-  DM_BREAKPOINTS.forEach((bp) => appendSource(picture, {
+  // One <source> per format carrying the full width-descriptor srcset + sizes.
+  // The browser resolves the best candidate for the slot; no per-breakpoint
+  // media queries needed (sizes does that job and adapts to any layout).
+  appendSource(picture, {
     type: 'image/webp',
-    srcset: buildScene7Rendition(src, { width: bp.width, format: 'webp' }),
-    media: bp.media,
-  }));
-  DM_BREAKPOINTS.forEach((bp) => appendSource(picture, {
+    srcset: buildScene7Srcset(src, 'webp'),
+    sizes,
+  });
+  appendSource(picture, {
     type: 'image/jpeg',
-    srcset: buildScene7Rendition(src, { width: bp.width, format: 'jpg' }),
-    media: bp.media,
-  }));
+    srcset: buildScene7Srcset(src, 'jpg'),
+    sizes,
+  });
   const img = document.createElement('img');
-  img.src = buildScene7Rendition(src, { width: 750, format: 'jpg' });
+  // Fallback src is a mid-range rendition (not the smallest) so browsers that
+  // ignore <source> still get something reasonably sharp.
+  img.src = buildScene7Rendition(src, { width: 1280, format: 'jpg' });
+  img.srcset = buildScene7Srcset(src, 'jpg');
+  img.sizes = sizes;
   img.alt = alt;
-  img.loading = 'lazy';
+  img.loading = options.eager ? 'eager' : 'lazy';
   picture.append(img);
   return picture;
 }
@@ -178,7 +210,8 @@ function buildDynamicMediaImages(main) {
   // for the linked case); CommonMark's [text](url "title") syntax
   // survives docx and the title attribute round-trips back to a real
   // HTML attribute at render time.
-  main.querySelectorAll('a').forEach((a) => {
+  const dmAnchors = [...main.querySelectorAll('a')].filter((a) => findDmOnAnchor(a));
+  dmAnchors.forEach((a, index) => {
     const match = findDmOnAnchor(a);
     if (!match) return;
 
@@ -187,8 +220,20 @@ function buildDynamicMediaImages(main) {
     // means the source had alt="" — render with alt="" for a11y. Any other
     // text (including the author's edit of the placeholder) is real alt.
     const alt = linkTextToAlt(a.textContent.trim());
+    // Per-slot responsive hint: full-bleed images (hero / .filled-gold banner)
+    // fill the viewport; columns-media occupies ~half a 1380px column; cards &
+    // carousel occupy ~a third. Getting `sizes` roughly right lets the browser
+    // pick a sharp-but-not-wasteful rendition per slot.
+    const inBlock = (name) => a.closest(`.${name}`) !== null;
+    let sizes = DM_DEFAULT_SIZES;
+    if (inBlock('columns-media')) sizes = '(min-width: 900px) 690px, 100vw';
+    else if (inBlock('cards-feature') || inBlock('cards-nav')) sizes = '(min-width: 900px) 460px, (min-width: 600px) 50vw, 100vw';
+    else if (inBlock('carousel-stories')) sizes = '(min-width: 900px) 440px, (min-width: 600px) 50vw, 85vw';
+    // Eager-load the first DM image (the hero, above the fold) to help LCP;
+    // everything else stays lazy.
+    const eager = index === 0;
     const picture = detectDynamicMediaUrl(dmUrl) === 'scene7'
-      ? renderScene7Picture(dmUrl, alt)
+      ? renderScene7Picture(dmUrl, alt, { sizes, eager })
       : renderDmOpenApiPicture(dmUrl, alt);
 
     // decorateMain() calls decorateButtons() BEFORE buildAutoBlocks(). At

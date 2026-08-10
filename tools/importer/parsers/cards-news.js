@@ -38,19 +38,11 @@ export default function parse(element, { document }) {
 
     const cell = [];
 
-    // Title, linked to the press-release page when a destination exists.
-    if (title) {
-      if (href) {
-        const heading = document.createElement(title.tagName.toLowerCase());
-        const a = document.createElement('a');
-        a.setAttribute('href', href);
-        a.textContent = title.textContent.trim();
-        heading.appendChild(a);
-        cell.push(heading);
-      } else {
-        cell.push(title);
-      }
-    }
+    // Title stays plain text. A link nested inside a heading does not survive
+    // the markdown round-trip (heading + inline link collapses and the href is
+    // dropped), so the destination is emitted as a standalone CTA paragraph
+    // below instead — which round-trips reliably, like the other blocks' CTAs.
+    if (title) cell.push(title);
     if (date) cell.push(date);
 
     // Tags: collapse the tag spans into one comma-separated paragraph so the
@@ -68,6 +60,17 @@ export default function parse(element, { document }) {
       }
     }
     if (description) cell.push(description);
+
+    // Destination as a standalone CTA paragraph (survives the markdown
+    // round-trip). cards-news.js consumes this to make the whole card a link.
+    if (href) {
+      const p = document.createElement('p');
+      const a = document.createElement('a');
+      a.setAttribute('href', href);
+      a.textContent = 'Read more';
+      p.appendChild(a);
+      cell.push(p);
+    }
 
     if (cell.length) cells.push([cell]);
   });

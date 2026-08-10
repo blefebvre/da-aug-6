@@ -230,11 +230,15 @@ main .section.filled-gold.hero-banner-container {
 /* ======================= tablet / desktop ======================= */
 @media (width >= 900px) {
   .hero-banner {
-    min-height: 662px;
+    min-height: 705px; /* source hero @1308 is 705px tall (ratio ~1.85) */
   }
 
+  /* Deep top/bottom padding pushes the H1 block to the lower third and gives
+     the hero its full height (source content wrapper: ~192px vertical). The
+     bottom padding also leaves room for the cards-nav strip that pulls up 60px
+     over the hero's lower edge. */
   .hero-banner > div:last-child {
-    padding: 40px 32px;
+    padding: 120px 32px 132px;
   }
 
   .hero-banner h1 {
