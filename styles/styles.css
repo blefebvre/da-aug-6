@@ -418,8 +418,27 @@ main > .section:first-of-type:has(> .default-content-wrapper > ol.breadcrumb) {
   padding-top: 32px;
 }
 
+/* Hero H1: no top margin, and share the 818px lede column (source constrains
+   both H1 and lede to ~818px). */
 main .default-content-wrapper:has(> ol.breadcrumb) > h1 {
   margin-top: 0;
+  max-width: 818px;
+}
+
+/* Hero band (section style `hero-light`, emitted by the hero-section importer
+   transformer). The source renders the hero as a full-bleed light blue-grey
+   band (rgb(243,246,247)) running from the top of the page to just above the
+   featured cards. The section is a direct child of <main> (full content width,
+   no side padding), so `margin:0` fills it edge-to-edge — no 100vw needed (that
+   would overhang the scrollbar gutter). The 32px top padding above (breadcrumb
+   rule) lands the breadcrumb at the source's visible y≈128; our header RESERVES
+   96px (source's overlays), which is why the effective top pad is 32px, not the
+   source's 112px band pad. Bottom padding reproduces the source's ~96px below
+   the lede before the band ends. */
+main > .section.hero-light {
+  margin: 0;
+  padding-bottom: 96px;
+  background-color: rgb(243 246 247);
 }
 
 /* ---------------------------------------------------------------- section tabs

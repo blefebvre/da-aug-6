@@ -6,6 +6,7 @@ import cardsFeatureReportsParser from './parsers/cards-feature-reports.js';
 
 // TRANSFORMER IMPORTS
 import cleanupTransformer from './transformers/atlascopcogroup-cleanup.js';
+import heroSectionTransformer from './transformers/atlascopcogroup-hero-section.js';
 import reportsTabsTransformer from './transformers/atlascopcogroup-reports-tabs.js';
 import dmImagesTransformer from './transformers/atlascopcogroup-dm-images.js';
 import metadataImageTransformer from './transformers/atlascopcogroup-metadata-image.js';
@@ -46,6 +47,7 @@ const PAGE_TEMPLATE = {
 // beyond the tab sections the reports-tabs transformer emits itself).
 const transformers = [
   cleanupTransformer,
+  heroSectionTransformer,
   reportsTabsTransformer,
   dmImagesTransformer,
 ];

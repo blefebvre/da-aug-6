@@ -168,8 +168,27 @@ var CustomImportScript = (() => {
     }
   }
 
-  // tools/importer/transformers/atlascopcogroup-reports-tabs.js
+  // tools/importer/transformers/atlascopcogroup-hero-section.js
   var TransformHook2 = { beforeTransform: "beforeTransform", afterTransform: "afterTransform" };
+  function buildHeroMetadata(doc) {
+    return WebImporter.Blocks.createBlock(doc, {
+      name: "Section Metadata",
+      cells: { style: "hero-light" }
+    });
+  }
+  function transform2(hookName, element, payload) {
+    if (hookName !== TransformHook2.beforeTransform) return;
+    const doc = element.ownerDocument;
+    const grid = element.querySelector("#main .ds-brand-container.grid-col-3") || element.querySelector(".ds-brand-container.grid-col-3");
+    if (!grid) return;
+    const h1 = element.querySelector("h1");
+    if (!h1 || !(h1.compareDocumentPosition(grid) & Node.DOCUMENT_POSITION_FOLLOWING)) return;
+    grid.parentNode.insertBefore(buildHeroMetadata(doc), grid);
+    grid.parentNode.insertBefore(doc.createElement("hr"), grid);
+  }
+
+  // tools/importer/transformers/atlascopcogroup-reports-tabs.js
+  var TransformHook3 = { beforeTransform: "beforeTransform", afterTransform: "afterTransform" };
   function buildQuarterBody(doc, item) {
     const parts = [];
     const dateEl = [...item.querySelectorAll("p, .cmp-text")].find((p) => /^Published on/i.test(p.textContent.trim()));
@@ -222,8 +241,8 @@ var CustomImportScript = (() => {
       cells: { "tab-intro": "true", "tab-group": "overview", "tab-style": "dark" }
     });
   }
-  function transform2(hookName, element, payload) {
-    if (hookName !== TransformHook2.beforeTransform) return;
+  function transform3(hookName, element, payload) {
+    if (hookName !== TransformHook3.beforeTransform) return;
     const doc = element.ownerDocument;
     const tabsRoot = element.querySelector(".cmp-tabs");
     if (!tabsRoot) return;
@@ -324,7 +343,7 @@ var CustomImportScript = (() => {
     if (url.startsWith("/is/image/")) return `https://atlascopco.scene7.com${url}`;
     return url;
   }
-  function transform3(hookName, element, payload) {
+  function transform4(hookName, element, payload) {
     if (hookName !== "afterTransform") return;
     const doc = element.ownerDocument;
     element.querySelectorAll("img").forEach((img) => {
@@ -351,7 +370,7 @@ var CustomImportScript = (() => {
   }
 
   // tools/importer/transformers/atlascopcogroup-metadata-image.js
-  var TransformHook3 = { beforeTransform: "beforeTransform", afterTransform: "afterTransform" };
+  var TransformHook4 = { beforeTransform: "beforeTransform", afterTransform: "afterTransform" };
   var OG_IMAGE_WIDTH = 1200;
   function isScene7(url) {
     try {
@@ -368,8 +387,8 @@ var CustomImportScript = (() => {
     params.push(`wid=${OG_IMAGE_WIDTH}`, "fmt=jpg");
     return `${base}?${params.join("&")}`;
   }
-  function transform4(hookName, element, payload) {
-    if (hookName !== TransformHook3.afterTransform) return;
+  function transform5(hookName, element, payload) {
+    if (hookName !== TransformHook4.afterTransform) return;
     const tables = [...element.querySelectorAll("table")].filter((t) => {
       const first = t.querySelector("th, td");
       return first && first.textContent.trim().toLowerCase() === "metadata";
@@ -427,7 +446,8 @@ var CustomImportScript = (() => {
   var transformers = [
     transform,
     transform2,
-    transform3
+    transform3,
+    transform4
   ];
   function executeTransformers(hookName, element, payload) {
     const enhancedPayload = { ...payload, template: PAGE_TEMPLATE };
@@ -485,7 +505,7 @@ var CustomImportScript = (() => {
       WebImporter.rules.transformBackgroundImages(main, document);
       WebImporter.rules.adjustImageUrls(main, url, params.originalURL);
       try {
-        transform4("afterTransform", main, { ...payload, template: PAGE_TEMPLATE });
+        transform5("afterTransform", main, { ...payload, template: PAGE_TEMPLATE });
       } catch (e) {
         console.error("metadata-image transformer failed:", e);
       }
