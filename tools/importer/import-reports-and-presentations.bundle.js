@@ -25,6 +25,28 @@ var CustomImportScript = (() => {
 
   // tools/importer/parsers/cards-feature-reports.js
   function parse(element, { document }) {
+    const teaserCards = Array.from(element.querySelectorAll(".teaser.ds-brand-teaser-card, .ds-brand-teaser-card"));
+    if (teaserCards.length) {
+      const cells2 = [];
+      teaserCards.forEach((card) => {
+        const image = card.querySelector(".cmp-teaser__image img, img");
+        const title = card.querySelector(".cmp-teaser__title, h1, h2, h3, h4");
+        const description = card.querySelector(".cmp-teaser__description");
+        const ctaLinks = Array.from(card.querySelectorAll(".cmp-teaser__action-link, .cmp-teaser__action-container a"));
+        const textCell = [];
+        if (title) textCell.push(title);
+        if (description) textCell.push(description);
+        ctaLinks.forEach((a) => textCell.push(a));
+        cells2.push([image || "", textCell]);
+      });
+      if (!cells2.length) {
+        element.replaceWith(...element.childNodes);
+        return;
+      }
+      const teaserBlock = WebImporter.Blocks.createBlock(document, { name: "cards-feature", cells: cells2 });
+      element.replaceWith(teaserBlock);
+      return;
+    }
     const innerGrid = element.querySelector(".aem-Grid") || element;
     const cards = Array.from(innerGrid.children).filter((c) => c.querySelector && c.querySelector("h2"));
     const cells = [];
@@ -376,14 +398,20 @@ var CustomImportScript = (() => {
     blocks: [
       {
         name: "cards-feature",
-        // The featured 3-card row only. `.ds-brand-container` distinguishes it
-        // from the bottom "You might also be interested in" cards, which are a
-        // separate `.grid-col-3.teaser-line-clamp-3` grid.
-        instances: ["#main .ds-brand-container.grid-col-3"]
+        // Two 3-card grids become cards-feature blocks (the shared parser detects
+        // each shape): the featured document row (`.ds-brand-container.grid-col-3`,
+        // h2 + document <ul>), and the bottom "You might also be interested in"
+        // row (`.grid-col-3.teaser-line-clamp-3`, standard teaser cards). The H2
+        // heading that precedes the interest grid is a sibling, so it survives as
+        // default content above the block.
+        instances: [
+          "#main .ds-brand-container.grid-col-3",
+          "#main .grid-col-3.teaser-line-clamp-3"
+        ]
       }
     ],
-    // Only the "interested in" cards row is a styled block; everything else is
-    // default content. The tabs transformer emits its own tab sections + breaks.
+    // Both cards rows are styled blocks; everything else is default content. The
+    // tabs transformer emits its own tab sections + breaks.
     sections: []
   };
   var transformers = [

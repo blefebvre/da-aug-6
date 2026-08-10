@@ -21,9 +21,44 @@
  * transformer converts them to responsive <picture> downstream.
  */
 export default function parse(element, { document }) {
-  // The 3 cards are the direct children of the grid's inner AEM grid; each holds
-  // exactly one <h2> title. (Using the inner grid's direct children avoids the
-  // per-card <h3> document-title headings tricking a "one heading" filter.)
+  // Two grids on this page use the cards-feature block:
+  //  1. The featured document row (`.ds-brand-container.grid-col-3`) — bespoke
+  //     cards whose body is one <h2> title + date/desc <p>s + a <ul> of document
+  //     links. Handled by the document-card branch below.
+  //  2. The bottom "You might also be interested in" row
+  //     (`.grid-col-3.teaser-line-clamp-3`) — standard AEM teaser cards
+  //     (`.ds-brand-teaser-card`: h3 title + description + CTA + image), the same
+  //     shape as the homepage cards-feature. Handled by the teaser branch.
+  // Detect which shape this instance is and branch, so ONE parser serves both.
+  const teaserCards = Array.from(element.querySelectorAll('.teaser.ds-brand-teaser-card, .ds-brand-teaser-card'));
+  if (teaserCards.length) {
+    const cells = [];
+    teaserCards.forEach((card) => {
+      const image = card.querySelector('.cmp-teaser__image img, img');
+      const title = card.querySelector('.cmp-teaser__title, h1, h2, h3, h4');
+      const description = card.querySelector('.cmp-teaser__description');
+      const ctaLinks = Array.from(card.querySelectorAll('.cmp-teaser__action-link, .cmp-teaser__action-container a'));
+
+      const textCell = [];
+      if (title) textCell.push(title);
+      if (description) textCell.push(description);
+      ctaLinks.forEach((a) => textCell.push(a));
+
+      cells.push([image || '', textCell]);
+    });
+    if (!cells.length) {
+      element.replaceWith(...element.childNodes);
+      return;
+    }
+    const teaserBlock = WebImporter.Blocks.createBlock(document, { name: 'cards-feature', cells });
+    element.replaceWith(teaserBlock);
+    return;
+  }
+
+  // Document-card shape: the 3 cards are the direct children of the grid's inner
+  // AEM grid; each holds exactly one <h2> title. (Using the inner grid's direct
+  // children avoids the per-card <h3> document-title headings tricking a "one
+  // heading" filter.)
   const innerGrid = element.querySelector('.aem-Grid') || element;
   const cards = Array.from(innerGrid.children)
     .filter((c) => c.querySelector && c.querySelector('h2'));

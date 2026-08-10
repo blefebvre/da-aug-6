@@ -24,14 +24,20 @@ const PAGE_TEMPLATE = {
   blocks: [
     {
       name: 'cards-feature',
-      // The featured 3-card row only. `.ds-brand-container` distinguishes it
-      // from the bottom "You might also be interested in" cards, which are a
-      // separate `.grid-col-3.teaser-line-clamp-3` grid.
-      instances: ['#main .ds-brand-container.grid-col-3'],
+      // Two 3-card grids become cards-feature blocks (the shared parser detects
+      // each shape): the featured document row (`.ds-brand-container.grid-col-3`,
+      // h2 + document <ul>), and the bottom "You might also be interested in"
+      // row (`.grid-col-3.teaser-line-clamp-3`, standard teaser cards). The H2
+      // heading that precedes the interest grid is a sibling, so it survives as
+      // default content above the block.
+      instances: [
+        '#main .ds-brand-container.grid-col-3',
+        '#main .grid-col-3.teaser-line-clamp-3',
+      ],
     },
   ],
-  // Only the "interested in" cards row is a styled block; everything else is
-  // default content. The tabs transformer emits its own tab sections + breaks.
+  // Both cards rows are styled blocks; everything else is default content. The
+  // tabs transformer emits its own tab sections + breaks.
   sections: [],
 };
 
