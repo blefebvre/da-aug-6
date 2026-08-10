@@ -175,4 +175,19 @@ main .cards-feature .cards-feature-card-body li a:not(.button):any-link:hover {
 .cards-feature .cards-feature-card-body li a:not(.button):any-link::after {
   content: none;
 }
+
+/* Reports card CTA button ("Read the Annual Report highlights", "Webcast on
+   demand"): the source renders these as a padded text-button (blue, 600,
+   10px 30px padding, 4px radius, arrow). They arrive as a standalone <p><a>
+   (NOT an <li>), so they already inherit the base blue-arrow CTA rule; this
+   just adds the padded-button chrome. Scoped with `:has(ul)` so it only hits
+   the reports document cards — the homepage teaser CTA (no document <ul>) keeps
+   its padding-less text-link look. */
+main .cards-feature .cards-feature-card-body:has(ul) p a:not(.button):any-link {
+  align-self: flex-start;
+  padding: 10px 30px;
+  font-weight: 600;
+  background: transparent;
+  border-radius: 4px;
+}
 /* stylelint-enable no-descending-specificity */

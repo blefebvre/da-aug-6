@@ -94,11 +94,19 @@ export default function parse(element, { document }) {
         textCell.push(para);
       });
 
-    // Document + CTA links, one per line, deduped by text+href. Each card's
-    // document titles are <h3><a>…</a></h3>; also grab standalone CTA links
-    // ("Read the Annual Report highlights", "Webcast on demand").
+    // Split links into two kinds, deduped by text+href:
+    //  - CTA buttons: anchors inside a `.cmp-button` wrapper (source's
+    //    `.cmp-button--primary.cmp-button--text` — "Read the Annual Report
+    //    highlights", "Webcast on demand"). These are emitted as STANDALONE CTA
+    //    paragraphs (<p><a>…</a></p>) so cards-feature.css styles them as the
+    //    blue text-button-with-arrow (same treatment as the homepage CTAs) — a
+    //    link in a <p>, not an <li>, is exactly what that rule targets.
+    //  - Document links: everything else (the .cmp-download DAM assets). These
+    //    stay in a <ul> and render as the teal, bullet-less, arrow-less internal
+    //    document links.
     const seenLink = new Set();
     const linkList = document.createElement('ul');
+    const ctaParas = [];
     card.querySelectorAll('a[href]').forEach((a) => {
       const href = a.getAttribute('href');
       const text = a.textContent.trim();
@@ -106,14 +114,21 @@ export default function parse(element, { document }) {
       const key = `${text}|${href}`;
       if (seenLink.has(key)) return;
       seenLink.add(key);
-      const li = document.createElement('li');
       const link = document.createElement('a');
       link.setAttribute('href', href);
       link.textContent = text;
-      li.appendChild(link);
-      linkList.appendChild(li);
+      if (a.closest('.cmp-button')) {
+        const p = document.createElement('p');
+        p.appendChild(link);
+        ctaParas.push(p);
+      } else {
+        const li = document.createElement('li');
+        li.appendChild(link);
+        linkList.appendChild(li);
+      }
     });
     if (linkList.children.length) textCell.push(linkList);
+    ctaParas.forEach((p) => textCell.push(p));
 
     cells.push([image || '', textCell]);
   });

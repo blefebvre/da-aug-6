@@ -70,6 +70,7 @@ var CustomImportScript = (() => {
       });
       const seenLink = /* @__PURE__ */ new Set();
       const linkList = document.createElement("ul");
+      const ctaParas = [];
       card.querySelectorAll("a[href]").forEach((a) => {
         const href = a.getAttribute("href");
         const text = a.textContent.trim();
@@ -77,14 +78,21 @@ var CustomImportScript = (() => {
         const key = `${text}|${href}`;
         if (seenLink.has(key)) return;
         seenLink.add(key);
-        const li = document.createElement("li");
         const link = document.createElement("a");
         link.setAttribute("href", href);
         link.textContent = text;
-        li.appendChild(link);
-        linkList.appendChild(li);
+        if (a.closest(".cmp-button")) {
+          const p = document.createElement("p");
+          p.appendChild(link);
+          ctaParas.push(p);
+        } else {
+          const li = document.createElement("li");
+          li.appendChild(link);
+          linkList.appendChild(li);
+        }
       });
       if (linkList.children.length) textCell.push(linkList);
+      ctaParas.forEach((p) => textCell.push(p));
       cells.push([image || "", textCell]);
     });
     if (!cells.length) {
