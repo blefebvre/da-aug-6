@@ -57,20 +57,41 @@
   transform: rotate(-135deg);
 }
 
-/* Body: the date + grouped document lists. */
+/* Body: the "Published on" line (full width) above a two-column grid. */
 .accordion .accordion-item-body {
   padding: 0 24px 24px;
   color: var(--text-color);
 }
 
-/* "Published on …" date line. */
-.accordion .accordion-item-body > p:first-child {
-  margin: 0 0 16px;
-  font-size: 16px;
+/* "Published on …" date line — full width, above the grid (source: ~47px gap
+   below it before the columns start). */
+.accordion .accordion-item-published {
+  margin: 0 0 47px;
+}
+
+.accordion .accordion-item-published p {
+  margin: 0;
+  font-size: 18px;
   color: var(--text-color);
 }
 
-/* Group headings (Downloadable documents / Press release / Webcast). */
+/* Two-column grid: Downloadable group left, everything else stacked right.
+   Source: two ~559px columns with a 24px gap (1141px total at 1308px viewport).
+   Both columns start at the same y. */
+.accordion .accordion-item-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* When an item has no right-hand groups, the left column spans full width. */
+.accordion .accordion-item-grid-single {
+  grid-template-columns: 1fr;
+}
+
+/* Group headings (Downloadable documents / Press release / Webcast). The FIRST
+   heading in each column has no top margin so both columns align at the top. */
 .accordion .accordion-item-body h4 {
   margin: 20px 0 8px;
   font-family: var(--heading-font-family);
@@ -78,6 +99,10 @@
   font-weight: 400;
   line-height: 1.2;
   color: var(--brand-teal); /* #054E5A */
+}
+
+.accordion .accordion-item-col > h4:first-child {
+  margin-top: 0;
 }
 
 .accordion .accordion-item-body ul {
@@ -110,4 +135,16 @@
 .accordion .accordion-item-body a[href^="/en/"]:any-link {
   color: var(--link-color); /* #1072B9 — external destination */
   text-decoration: underline;
+}
+
+/* Mobile: collapse the two body columns to one. The right column's first h4
+   ("Press release") then needs its normal top margin back for separation. */
+@media (width < 900px) {
+  .accordion .accordion-item-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .accordion .accordion-item-col + .accordion-item-col > h4:first-child {
+    margin-top: 20px;
+  }
 }

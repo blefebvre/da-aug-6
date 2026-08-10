@@ -28,36 +28,40 @@
 
 const TransformHook = { beforeTransform: 'beforeTransform', afterTransform: 'afterTransform' };
 
-// Build the body cell for one accordion item (one quarter): the "Published on"
-// date paragraph (when present) followed by each h4 group and its document
-// links as a <ul>. Link grouping follows source DOM order: each h4 owns the
-// links that appear after it, up to the next h4.
+// Parse one accordion item (one quarter) into { published, left, right } so the
+// accordion block can lay the body out as the source's two columns:
+//   - published: the "Published on …" date <p> (full-width above the grid), or null
+//   - left:  the "Downloadable documents" group (h4 + its link <ul>)
+//   - right: every OTHER group (Press release, Webcast, …), stacked
+// The split is CONTENT-DRIVEN, not positional: the group whose heading matches
+// "Downloadable" goes left, all others go right — so quarters that lack a
+// Webcast (e.g. Annual Report items) or carry other group sets still lay out
+// correctly. Link grouping follows source DOM order: each h4 owns the links that
+// appear after it, up to the next h4.
 function buildQuarterBody(doc, item) {
-  const parts = [];
-
-  // Published-on date: first text node starting with "Published on".
+  // Published-on date: first paragraph starting with "Published on".
+  let published = null;
   const dateEl = [...item.querySelectorAll('p, .cmp-text')]
     .find((p) => /^Published on/i.test(p.textContent.trim()));
   if (dateEl) {
-    const p = doc.createElement('p');
-    p.textContent = dateEl.textContent.trim();
-    parts.push(p);
+    published = doc.createElement('p');
+    published.textContent = dateEl.textContent.trim();
   }
 
-  // Walk headings + links in document order, bucketing links under the latest
-  // h4. Links without a preceding h4 (rare) fall into an initial unlabeled ul.
+  // Walk headings + links in document order, collecting each group as
+  // { h4, ul }. Links without a preceding h4 (rare) fall into a leading group
+  // with a null h4.
   const panelBody = item.querySelector('.cmp-accordion__panel') || item;
   const seen = new Set();
-  let currentUl = null;
-  const flush = () => { if (currentUl && currentUl.children.length) parts.push(currentUl); };
+  const groups = [];
+  let current = null;
+  const startGroup = (h4) => { current = { h4, ul: doc.createElement('ul') }; groups.push(current); };
 
   panelBody.querySelectorAll('h4, a[href]').forEach((node) => {
     if (node.tagName === 'H4') {
-      flush();
       const h4 = doc.createElement('h4');
       h4.textContent = node.textContent.trim();
-      parts.push(h4);
-      currentUl = doc.createElement('ul');
+      startGroup(h4);
     } else {
       const href = node.getAttribute('href');
       const text = node.textContent.trim();
@@ -65,18 +69,39 @@ function buildQuarterBody(doc, item) {
       const key = `${text}|${href}`;
       if (seen.has(key)) return;
       seen.add(key);
-      if (!currentUl) currentUl = doc.createElement('ul');
+      if (!current) startGroup(null);
       const li = doc.createElement('li');
       const a = doc.createElement('a');
       a.setAttribute('href', href);
       a.textContent = text;
       li.appendChild(a);
-      currentUl.appendChild(li);
+      current.ul.appendChild(li);
     }
   });
-  flush();
 
-  return parts;
+  // Split groups: "Downloadable …" → left column, everything else → right.
+  const left = [];
+  const right = [];
+  groups.forEach((g) => {
+    if (!g.ul.children.length && !g.h4) return; // drop empty unlabeled group
+    const isDownloadable = g.h4 && /downloadable/i.test(g.h4.textContent);
+    const target = isDownloadable ? left : right;
+    if (g.h4) target.push(g.h4);
+    if (g.ul.children.length) target.push(g.ul);
+  });
+
+  // Fallback: if nothing matched "Downloadable" (unexpected group naming), keep
+  // the first group on the left so a column is never empty while the other has all.
+  if (!left.length && right.length) {
+    const firstH4Idx = right.findIndex((n) => n.tagName === 'H4');
+    if (firstH4Idx === 0) {
+      // move the first group (h4 + following ul) to the left
+      left.push(right.shift());
+      if (right[0] && right[0].tagName === 'UL') left.push(right.shift());
+    }
+  }
+
+  return { published, left, right };
 }
 
 // Build a Section Metadata table (same shape WebImporter.Blocks.createBlock makes)
@@ -150,13 +175,16 @@ export default function transform(hookName, element, payload) {
     frag.appendChild(doc.createElement('hr'));
 
     // Each accordion item = one quarter. Emit an `accordion` block whose rows
-    // are [ quarter-label | expanded-flag | body ] (body = date + h4 groups +
-    // link lists). The expanded flag carries the source's AUTHORED open state
-    // (data-cmp-expanded / button--expanded / aria-expanded) so the block can
-    // reproduce it exactly — the source opens specific quarters (Q2 2026,
-    // Q4 2025), NOT a "first item" rule. The flag is a simple middle cell so the
-    // rich body stays the last column (matching the serialization that already
-    // round-trips). Closed items get an empty flag cell.
+    // are [ quarter-label | expanded-flag | published-date | left-column |
+    // right-column ]:
+    //   - expanded-flag carries the source's AUTHORED open state
+    //     (data-cmp-expanded / button--expanded / aria-expanded) so the block
+    //     reproduces it exactly — the source opens specific quarters (Q2 2026,
+    //     Q4 2025), NOT a "first item" rule. Closed items get an empty flag cell.
+    //   - published-date is the full-width "Published on …" line above the grid.
+    //   - left-column / right-column are the two body columns (Downloadable
+    //     group left; Press release + Webcast + any other group right). Splitting
+    //     them into separate cells lets accordion.css lay them out as a 2-col grid.
     const items = [...panel.querySelectorAll('.cmp-accordion__item')];
     if (items.length) {
       const rows = [];
@@ -168,8 +196,14 @@ export default function transform(hookName, element, payload) {
         const expanded = item.hasAttribute('data-cmp-expanded')
           || !!item.querySelector('.cmp-accordion__button--expanded')
           || (btn && btn.getAttribute('aria-expanded') === 'true');
-        const body = buildQuarterBody(doc, item);
-        rows.push([quarterLabel, expanded ? 'expanded' : '', body]);
+        const { published, left, right } = buildQuarterBody(doc, item);
+        rows.push([
+          quarterLabel,
+          expanded ? 'expanded' : '',
+          published ? [published] : [''],
+          left.length ? left : [''],
+          right.length ? right : [''],
+        ]);
       });
       if (rows.length) {
         const accordion = WebImporter.Blocks.createBlock(doc, { name: 'accordion', cells: rows });

@@ -190,26 +190,25 @@ var CustomImportScript = (() => {
   // tools/importer/transformers/atlascopcogroup-reports-tabs.js
   var TransformHook3 = { beforeTransform: "beforeTransform", afterTransform: "afterTransform" };
   function buildQuarterBody(doc, item) {
-    const parts = [];
+    let published = null;
     const dateEl = [...item.querySelectorAll("p, .cmp-text")].find((p) => /^Published on/i.test(p.textContent.trim()));
     if (dateEl) {
-      const p = doc.createElement("p");
-      p.textContent = dateEl.textContent.trim();
-      parts.push(p);
+      published = doc.createElement("p");
+      published.textContent = dateEl.textContent.trim();
     }
     const panelBody = item.querySelector(".cmp-accordion__panel") || item;
     const seen = /* @__PURE__ */ new Set();
-    let currentUl = null;
-    const flush = () => {
-      if (currentUl && currentUl.children.length) parts.push(currentUl);
+    const groups = [];
+    let current = null;
+    const startGroup = (h4) => {
+      current = { h4, ul: doc.createElement("ul") };
+      groups.push(current);
     };
     panelBody.querySelectorAll("h4, a[href]").forEach((node) => {
       if (node.tagName === "H4") {
-        flush();
         const h4 = doc.createElement("h4");
         h4.textContent = node.textContent.trim();
-        parts.push(h4);
-        currentUl = doc.createElement("ul");
+        startGroup(h4);
       } else {
         const href = node.getAttribute("href");
         const text = node.textContent.trim();
@@ -217,17 +216,32 @@ var CustomImportScript = (() => {
         const key = `${text}|${href}`;
         if (seen.has(key)) return;
         seen.add(key);
-        if (!currentUl) currentUl = doc.createElement("ul");
+        if (!current) startGroup(null);
         const li = doc.createElement("li");
         const a = doc.createElement("a");
         a.setAttribute("href", href);
         a.textContent = text;
         li.appendChild(a);
-        currentUl.appendChild(li);
+        current.ul.appendChild(li);
       }
     });
-    flush();
-    return parts;
+    const left = [];
+    const right = [];
+    groups.forEach((g) => {
+      if (!g.ul.children.length && !g.h4) return;
+      const isDownloadable = g.h4 && /downloadable/i.test(g.h4.textContent);
+      const target = isDownloadable ? left : right;
+      if (g.h4) target.push(g.h4);
+      if (g.ul.children.length) target.push(g.ul);
+    });
+    if (!left.length && right.length) {
+      const firstH4Idx = right.findIndex((n) => n.tagName === "H4");
+      if (firstH4Idx === 0) {
+        left.push(right.shift());
+        if (right[0] && right[0].tagName === "UL") left.push(right.shift());
+      }
+    }
+    return { published, left, right };
   }
   function buildTabMetadata(doc, label) {
     return WebImporter.Blocks.createBlock(doc, {
@@ -277,8 +291,14 @@ var CustomImportScript = (() => {
           if (!quarterLabel) return;
           const btn = item.querySelector(".cmp-accordion__button");
           const expanded = item.hasAttribute("data-cmp-expanded") || !!item.querySelector(".cmp-accordion__button--expanded") || btn && btn.getAttribute("aria-expanded") === "true";
-          const body = buildQuarterBody(doc, item);
-          rows.push([quarterLabel, expanded ? "expanded" : "", body]);
+          const { published, left, right } = buildQuarterBody(doc, item);
+          rows.push([
+            quarterLabel,
+            expanded ? "expanded" : "",
+            published ? [published] : [""],
+            left.length ? left : [""],
+            right.length ? right : [""]
+          ]);
         });
         if (rows.length) {
           const accordion = WebImporter.Blocks.createBlock(doc, { name: "accordion", cells: rows });
