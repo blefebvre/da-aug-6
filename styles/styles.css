@@ -606,3 +606,14 @@ main > .section.hero-light {
   margin-left: auto;
   margin-right: auto;
 }
+
+/* The source insets the panel CONTENT by ~30px each side within a wider box, so
+   its accordion is ~848px while the tablist stays 940px. Reproduce that on the
+   LIGHT variant only: box-sizing:border-box so the 940px max-width is the OUTER
+   box, then 46px horizontal padding → 940 − 2×46 = 848px content. The tablist
+   above is unaffected; reports' dark panels keep the base 16px. */
+.section-tabs-light > .section-tabs-panel {
+  box-sizing: border-box;
+  padding-left: 46px;
+  padding-right: 46px;
+}

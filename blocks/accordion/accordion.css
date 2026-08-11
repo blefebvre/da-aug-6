@@ -37,16 +37,18 @@
   list-style: none;
 }
 
-/* `large` variant — source question headers are <h2> at 40px/56px (careers FAQ).
-   Source collapsed item ≈77px = 56px line + ~21px padding, so tighten the item
-   padding from the reports default (16px). */
+/* `large` variant — source question headers are <h2> at 40px (careers FAQ).
+   Source item heights are 77px (1 line) / 121px (2 lines): the 44px delta per
+   wrapped line = the effective line box, with ~33px total item padding on top.
+   So use line-height 44px + ~16px item padding to reproduce both exactly. */
 .accordion.large .accordion-item-label {
+  padding: 0 12px;
   font-size: 40px;
-  line-height: 56px;
+  line-height: 44px;
 }
 
 .accordion.large .accordion-item {
-  padding: 10px 0;
+  padding: 16px 0;
 }
 
 .accordion .accordion-item-label::-webkit-details-marker {
