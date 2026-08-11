@@ -469,25 +469,33 @@ function buildBreadcrumb() {
  * @param {Element} main
  */
 function decorateHeroIntro(main) {
+  const firstSection = main.querySelector(':scope > .section');
+
+  // Case A — hero-light default-content hero (e.g. reports-and-presentations):
+  // breadcrumb/eyebrow/lede are plain default content in the first section.
   const dc = main.querySelector(':scope > .section > .default-content-wrapper');
-  if (!dc) return;
-
-  const h1 = dc.querySelector(':scope > h1');
-  if (!h1) return; // only decorate a genuine page hero (H1 present)
-
-  // Breadcrumb: build from metadata and insert as the hero's first child.
-  const crumb = buildBreadcrumb();
-  if (crumb) dc.insertBefore(crumb, dc.firstChild);
-
-  // Eyebrow: the short <p> immediately preceding the page <h1>.
-  const prev = h1.previousElementSibling;
-  if (prev && prev.tagName === 'P' && prev.textContent.trim()) {
-    prev.classList.add('eyebrow');
+  const dcH1 = dc && dc.querySelector(':scope > h1');
+  if (dc && dcH1) {
+    const crumb = buildBreadcrumb();
+    if (crumb) dc.insertBefore(crumb, dc.firstChild);
+    const prev = dcH1.previousElementSibling;
+    if (prev && prev.tagName === 'P' && prev.textContent.trim()) prev.classList.add('eyebrow');
+    const next = dcH1.nextElementSibling;
+    if (next && next.tagName === 'P' && next.textContent.trim()) next.classList.add('hero-lede');
+    return;
   }
-  // Lede: the intro <p> immediately following the H1 (hero paragraph).
-  const next = h1.nextElementSibling;
-  if (next && next.tagName === 'P' && next.textContent.trim()) {
-    next.classList.add('hero-lede');
+
+  // Case B — hero-banner block hero over a full-bleed image (e.g. careers FAQ):
+  // the breadcrumb overlays the image at the top of the banner, with WHITE
+  // links. Insert it into the .hero-banner and tag it so CSS styles the
+  // over-image variant. (hero-banner owns its own eyebrow/H1/lede styling.)
+  const heroBanner = firstSection && firstSection.querySelector('.hero-banner');
+  if (heroBanner) {
+    const crumb = buildBreadcrumb();
+    if (crumb) {
+      crumb.classList.add('breadcrumb-over-hero');
+      heroBanner.insertBefore(crumb, heroBanner.firstChild);
+    }
   }
 }
 

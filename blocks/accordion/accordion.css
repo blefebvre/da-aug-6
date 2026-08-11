@@ -18,10 +18,10 @@
   padding: 16px 0;
 }
 
-/* Header row: quarter label + expand/collapse affordance. Source: the title is
-   an <h3> at 32px and the header row is ~44px tall (title line-height), so keep
-   the padding tight — the vertical rhythm between cards comes from the block
-   gap, not header padding. */
+/* Header row: item label + expand/collapse affordance. Reports source: the
+   title is an <h3> at 32px; keep the padding tight — the vertical rhythm between
+   cards comes from the block gap, not header padding. The `large` variant
+   (careers FAQ, source <h2>) bumps this to 40px — see below. */
 .accordion .accordion-item-label {
   display: flex;
   align-items: center;
@@ -35,6 +35,12 @@
   color: var(--brand-teal); /* #054E5A */
   cursor: pointer;
   list-style: none;
+}
+
+/* `large` variant — source question headers are <h2> at 40px (careers FAQ). */
+.accordion.large .accordion-item-label {
+  font-size: 40px;
+  line-height: 1.2;
 }
 
 .accordion .accordion-item-label::-webkit-details-marker {

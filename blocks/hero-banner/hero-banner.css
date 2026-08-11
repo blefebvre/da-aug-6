@@ -55,8 +55,10 @@ main .section.filled-gold.hero-banner-container {
   );
 }
 
-/* row 1 -> absolute background image layer */
-.hero-banner > div:first-child {
+/* row 1 -> absolute background image layer. Uses :first-of-type/:last-of-type
+   (not :first-child) so an injected breadcrumb <ol> overlay sibling — see
+   .breadcrumb-over-hero below — doesn't shift these div layers. */
+.hero-banner > div:first-of-type {
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -64,7 +66,7 @@ main .section.filled-gold.hero-banner-container {
 }
 
 /* row 2 -> content layer, pinned to the page left gutter */
-.hero-banner > div:last-child {
+.hero-banner > div:last-of-type {
   position: relative;
   z-index: 2;
   width: 100%;
@@ -74,15 +76,36 @@ main .section.filled-gold.hero-banner-container {
 }
 
 /* inner cell of the image row fills the layer */
-.hero-banner > div:first-child > div {
+.hero-banner > div:first-of-type > div {
   width: 100%;
   height: 100%;
   margin: 0;
 }
 
 /* content column (instance 1) */
-.hero-banner > div:last-child > div {
+.hero-banner > div:last-of-type > div {
   max-width: 800px;
+}
+
+/* Breadcrumb overlaid on the hero image (careers FAQ): pinned to the top gutter,
+   above the scrim, WHITE links (the source uses white-on-image here, vs the blue
+   on the reports light band). Inserted by decorateHeroIntro. */
+.hero-banner > ol.breadcrumb-over-hero {
+  position: absolute;
+  z-index: 3;
+  top: 32px;
+  left: 24px;
+  right: 24px;
+  margin: 0;
+}
+
+.hero-banner > ol.breadcrumb-over-hero > li a:any-link {
+  color: #fff;
+}
+
+.hero-banner > ol.breadcrumb-over-hero > li,
+.hero-banner > ol.breadcrumb-over-hero > li:not(:last-child)::after {
+  color: #fff;
 }
 
 .hero-banner picture {

@@ -10,7 +10,8 @@
     "lint:fix": "npm run lint:js -- --fix && npm run lint:css -- --fix",
     "build:import:homepage": "npx -y esbuild@0.28.1 tools/importer/import-homepage.js --bundle --format=iife --global-name=CustomImportScript --outfile=tools/importer/import-homepage.bundle.js && npx -y esbuild@0.28.1 tools/importer/import-homepage.js --bundle --format=esm --outfile=tools/importer/import-homepage.ui.bundle.js",
     "build:import:reports": "npx -y esbuild@0.28.1 tools/importer/import-reports-and-presentations.js --bundle --format=iife --global-name=CustomImportScript --outfile=tools/importer/import-reports-and-presentations.bundle.js && npx -y esbuild@0.28.1 tools/importer/import-reports-and-presentations.js --bundle --format=esm --outfile=tools/importer/import-reports-and-presentations.ui.bundle.js",
-    "build:import": "npm run build:import:homepage && npm run build:import:reports"
+    "build:import:careers-faq": "npx -y esbuild@0.28.1 tools/importer/import-careers-faq.js --bundle --format=iife --global-name=CustomImportScript --outfile=tools/importer/import-careers-faq.bundle.js && npx -y esbuild@0.28.1 tools/importer/import-careers-faq.js --bundle --format=esm --outfile=tools/importer/import-careers-faq.ui.bundle.js",
+    "build:import": "npm run build:import:homepage && npm run build:import:reports && npm run build:import:careers-faq"
   },
   "repository": {
     "type": "git",
