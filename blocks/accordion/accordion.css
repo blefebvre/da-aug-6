@@ -37,15 +37,15 @@
   list-style: none;
 }
 
-/* `large` variant — careers FAQ. Measured from the source `.cmp-accordion__title`:
-   32px / 44px. Item heights are 77px (1 line) / 121px (2 lines) = 44px per line +
-   ~33px item padding. The button reserves ~88px on the right for the circled icon
-   (below), so the title wraps at ~760px within the 848px header. */
+/* `large` variant — careers FAQ. Source `.cmp-accordion__header h2` is 40px/56px
+   (per review decision — the inner title span computes 32px, but the authored
+   header size is 40px). The button reserves ~64px on the right for the circled
+   icon (below), so the title wraps within the 848px header. */
 .accordion.large .accordion-item-label {
   gap: 0;
   padding: 0 12px;
-  font-size: 32px;
-  line-height: 44px;
+  font-size: 40px;
+  line-height: 56px;
 }
 
 .accordion.large .accordion-item {
