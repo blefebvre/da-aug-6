@@ -595,11 +595,14 @@ main > .section.hero-light {
   background-color: rgb(243 246 247); /* light blue-grey */
 }
 
-/* Re-center the light widget's inner content within the standard column. */
+/* Re-center the light widget's inner content in a NARROWER column than the
+   standard 1200px: the source constrains the FAQ tabs so the tablist lands
+   ~940px and accordion headers ~848px. Matching that keeps the two-line question
+   wrapping (hence per-item heights + total page height) in line with the source. */
 .section-tabs-light > .section-tabs-intro,
 .section-tabs-light > .section-tabs-list,
 .section-tabs-light > .section-tabs-panel {
-  max-width: var(--section-max-width);
+  max-width: 940px;
   margin-left: auto;
   margin-right: auto;
 }

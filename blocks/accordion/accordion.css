@@ -37,10 +37,16 @@
   list-style: none;
 }
 
-/* `large` variant — source question headers are <h2> at 40px (careers FAQ). */
+/* `large` variant — source question headers are <h2> at 40px/56px (careers FAQ).
+   Source collapsed item ≈77px = 56px line + ~21px padding, so tighten the item
+   padding from the reports default (16px). */
 .accordion.large .accordion-item-label {
   font-size: 40px;
-  line-height: 1.2;
+  line-height: 56px;
+}
+
+.accordion.large .accordion-item {
+  padding: 10px 0;
 }
 
 .accordion .accordion-item-label::-webkit-details-marker {

@@ -140,6 +140,19 @@ main .section.filled-gold.hero-banner-container {
   line-height: 1.45;
 }
 
+/* On-image eyebrow (careers FAQ pretitle, tagged by decorateHeroIntro): small
+   uppercase PALE-TEAL label over the photo — distinct from the reports light-band
+   eyebrow (#04424D) and from the plain white hero paragraph. */
+.hero-banner .hero-eyebrow {
+  margin: 0 0 8px;
+  color: rgb(180 202 206); /* pale desaturated teal, on-dark-image */
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
 /* graceful fallback when an image is not authored */
 .hero-banner.no-image {
   min-height: 0;
@@ -150,13 +163,21 @@ main .section.filled-gold.hero-banner-container {
   content: none;
 }
 
-.hero-banner.no-image > div:first-child {
+.hero-banner.no-image > div:first-of-type {
   position: static;
 }
 
 .hero-banner.no-image h1,
 .hero-banner.no-image p {
   color: var(--text-color);
+}
+
+/* Careers FAQ hero: source constrains the H1/lede column to 714px. Scoped to a
+   hero that has the tagged eyebrow (this page) so the homepage hero's 800px
+   column is untouched. Placed after the .no-image rules to satisfy
+   no-descending-specificity. */
+.hero-banner:has(.hero-eyebrow) > div:last-of-type > div {
+  max-width: 714px;
 }
 
 /* ===== instance 2: sustainability (filled-gold) — no dark scrim, cream box ===== */

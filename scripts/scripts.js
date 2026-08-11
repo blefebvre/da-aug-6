@@ -488,13 +488,20 @@ function decorateHeroIntro(main) {
   // Case B — hero-banner block hero over a full-bleed image (e.g. careers FAQ):
   // the breadcrumb overlays the image at the top of the banner, with WHITE
   // links. Insert it into the .hero-banner and tag it so CSS styles the
-  // over-image variant. (hero-banner owns its own eyebrow/H1/lede styling.)
+  // over-image variant. Also tag a PRE-H1 paragraph as the eyebrow (the source's
+  // small uppercase pale-teal pretitle) — distinct from the homepage hero, whose
+  // only <p> follows the H1 (the lede) and must NOT get eyebrow styling.
   const heroBanner = firstSection && firstSection.querySelector('.hero-banner');
   if (heroBanner) {
     const crumb = buildBreadcrumb();
     if (crumb) {
       crumb.classList.add('breadcrumb-over-hero');
       heroBanner.insertBefore(crumb, heroBanner.firstChild);
+    }
+    const hbH1 = heroBanner.querySelector('h1');
+    const eyebrow = hbH1 && hbH1.previousElementSibling;
+    if (eyebrow && eyebrow.tagName === 'P' && eyebrow.textContent.trim()) {
+      eyebrow.classList.add('hero-eyebrow');
     }
   }
 }
