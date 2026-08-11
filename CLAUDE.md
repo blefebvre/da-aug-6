@@ -290,8 +290,9 @@ breadcrumb/eyebrow classes. Reports CTA vs doc links: the source CTA is a `.cmp-
 - Two per-template importers exist: `import-homepage.js` and
   `import-reports-and-presentations.js`, each with its own `.bundle.js` + `urls-*.txt`.
 - Generated `*.bundle.js` files are in `.eslintignore` (esbuild output isn't lint-clean).
-  Rebuild the bundle(s) after editing ANY parser/transformer, point run-bulk-import at the
-  `.bundle.js`, and `npm run lint` before committing (both JS + CSS; stylelint enforces
+  After editing ANY parser/transformer run **`npm run build:import`** (rebuilds all four
+  artifacts — see "TWO bundle formats" below), point run-bulk-import at the `.bundle.js`,
+  and `npm run lint` before committing (both JS + CSS; stylelint enforces
   `no-descending-specificity` — guard deliberate cascade overrides with
   `/* stylelint-disable-next-line no-descending-specificity */`).
 - reports-and-presentations import completeness reports ~54% — expected, because most of
@@ -299,21 +300,28 @@ breadcrumb/eyebrow classes. Reports CTA vs doc links: the source CTA is a `.cmp-
   text survival, not correctness.
 
 ## TWO bundle formats — one source, two runners (do not conflate)
-The import source (`import-*.js`) is bundled TWICE, into two artifacts that must both be
+Each import source (`import-<t>.js`) is bundled TWICE, into two artifacts that must BOTH be
 rebuilt after any parser/transformer edit. Same `transform` source → byte-identical output
 (verified); the ONLY difference is module format for the two loaders:
 - **`.bundle.js` (IIFE, `--format=iife --global-name=CustomImportScript`)** — for the EMA
   runner (`run-bulk-import.js`), which injects it as a `<script>` and reads
   `window.CustomImportScript.default`.
-  `npx -y esbuild@0.28.1 tools/importer/import-<t>.js --bundle --format=iife --global-name=CustomImportScript --outfile=tools/importer/import-<t>.bundle.js`
 - **`.ui.bundle.js` (ESM, `--format=esm`)** — for the local **helix-importer-ui**, which
   loads the file with a dynamic `import()` and reads `default.transform`. An IIFE bundle
   has NO ES exports, so `import()`ing it gives `default = {default, "module.exports"}` with
   no `.transform` → the UI silently falls back to a passthrough `transformDOM` → **Markdown
   with flattened prose and NO blocks** (this exact symptom). The ESM bundle exposes
   `default.transform`, fixing it. `WebImporter` stays a free global (UI provides it on
-  `window`). Build:
-  `npx -y esbuild@0.28.1 tools/importer/import-<t>.js --bundle --format=esm --outfile=tools/importer/import-<t>.ui.bundle.js`
+  `window`).
+
+**The two formats are NOT built together automatically — one esbuild command emits ONE
+artifact.** To keep them in sync, ALWAYS rebuild via the npm scripts, which emit both
+formats for a template in one go (never hand-run a single esbuild command, or you'll ship a
+stale `.ui.bundle.js`):
+- `npm run build:import` — rebuilds all four artifacts (both templates × both formats).
+- `npm run build:import:homepage` / `:reports` — one template, both formats.
+These wrap the pinned `npx -y esbuild@0.28.1 … --format=iife|esm …` invocations; edit
+`package.json` if you add a template.
 
 ### Running an import from the local helix-importer-ui
 1. Serve the repo (the UI loads the bundle over http). Transformation file URL to paste:

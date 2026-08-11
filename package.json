@@ -7,7 +7,10 @@
     "lint:js": "eslint .",
     "lint:css": "stylelint \"blocks/**/*.css\" \"styles/*.css\"",
     "lint": "npm run lint:js && npm run lint:css",
-    "lint:fix": "npm run lint:js -- --fix && npm run lint:css -- --fix"
+    "lint:fix": "npm run lint:js -- --fix && npm run lint:css -- --fix",
+    "build:import:homepage": "npx -y esbuild@0.28.1 tools/importer/import-homepage.js --bundle --format=iife --global-name=CustomImportScript --outfile=tools/importer/import-homepage.bundle.js && npx -y esbuild@0.28.1 tools/importer/import-homepage.js --bundle --format=esm --outfile=tools/importer/import-homepage.ui.bundle.js",
+    "build:import:reports": "npx -y esbuild@0.28.1 tools/importer/import-reports-and-presentations.js --bundle --format=iife --global-name=CustomImportScript --outfile=tools/importer/import-reports-and-presentations.bundle.js && npx -y esbuild@0.28.1 tools/importer/import-reports-and-presentations.js --bundle --format=esm --outfile=tools/importer/import-reports-and-presentations.ui.bundle.js",
+    "build:import": "npm run build:import:homepage && npm run build:import:reports"
   },
   "repository": {
     "type": "git",
