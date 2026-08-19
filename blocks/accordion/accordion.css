@@ -18,10 +18,10 @@
   padding: 16px 0;
 }
 
-/* Header row: quarter label + expand/collapse affordance. Source: the title is
-   an <h3> at 32px and the header row is ~44px tall (title line-height), so keep
-   the padding tight — the vertical rhythm between cards comes from the block
-   gap, not header padding. */
+/* Header row: item label + expand/collapse affordance. Reports source: the
+   title is an <h3> at 32px; keep the padding tight — the vertical rhythm between
+   cards comes from the block gap, not header padding. The `large` variant
+   (careers FAQ, source <h2>) bumps this to 40px — see below. */
 .accordion .accordion-item-label {
   display: flex;
   align-items: center;
@@ -35,6 +35,21 @@
   color: var(--brand-teal); /* #054E5A */
   cursor: pointer;
   list-style: none;
+}
+
+/* `large` variant — careers FAQ. Source `.cmp-accordion__header h2` is 40px/56px
+   (per review decision — the inner title span computes 32px, but the authored
+   header size is 40px). The button reserves ~64px on the right for the circled
+   icon (below), so the title wraps within the 848px header. */
+.accordion.large .accordion-item-label {
+  gap: 0;
+  padding: 0 12px;
+  font-size: 40px;
+  line-height: 56px;
+}
+
+.accordion.large .accordion-item {
+  padding: 16px 0;
 }
 
 .accordion .accordion-item-label::-webkit-details-marker {
@@ -56,6 +71,39 @@
 .accordion .accordion-item[open] .accordion-item-label::after {
   transform: rotate(-135deg);
 }
+
+/* `large` variant affordance (careers FAQ): a 32px grey-outlined circle holding
+   a "+" glyph; on open the whole glyph rotates 45deg into an "×" and the glyph +
+   ring darken to rgb(62,63,65). Reuses the source's rotate-a-plus approach (one
+   icon, animated) instead of swapping two icons. The plus is an inline-SVG mask
+   over a solid background-color so the colour is controllable. Overrides the base
+   chevron ::after — scoped to .large so the reports accordion keeps its chevron.
+   Deliberate cascade override of the base ::after rules above. */
+/* stylelint-disable no-descending-specificity */
+.accordion.large .accordion-item-label::after {
+  content: "";
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  margin-left: 32px; /* + icon = ~64px reserved right of the ~760px title */
+  box-sizing: border-box;
+  border: 1px solid rgb(125 128 131);
+  border-radius: 50%;
+  transform: none;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+
+  /* the "+" glyph: a 30px masked box centred in the ring, filled grey */
+  background-color: rgb(125 128 131);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 5v14M5 12h14' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center / 18px;
+}
+
+/* open → plus rotates 45deg into an ×; glyph + ring darken. */
+.accordion.large .accordion-item[open] .accordion-item-label::after {
+  transform: rotate(45deg);
+  border-color: rgb(62 63 65);
+  background-color: rgb(62 63 65);
+}
+/* stylelint-enable no-descending-specificity */
 
 /* Body: the "Published on" line (full width) above a two-column grid. */
 .accordion .accordion-item-body {

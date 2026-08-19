@@ -352,16 +352,19 @@ main .section.filled-gold {
    Breadcrumb is GENERATED (built from `breadcrumb` metadata by decorateHeroIntro
    in scripts.js), not authored. Eyebrow/lede are tagged there too. */
 
-/* Breadcrumb: one horizontal row, no list markers/indent, chevron separators.
-   Only the ancestor crumbs are links; the current-page crumb is plain text
-   (aria-current="page"). The <li> carries the 14px grey (current-page crumb);
-   the ancestor <a> overrides to 16px blue (matching source). */
-main .default-content-wrapper ol.breadcrumb {
+/* Breadcrumb LAYOUT (universal — applies wherever the block is inserted: a
+   hero-light default-content-wrapper OR overlaid on a hero-banner image): one
+   horizontal row, no list markers/indent, chevron separators. Only the ancestor
+   crumbs are links; the current-page crumb is plain text (aria-current="page").
+   The <li> carries 14px grey (current-page crumb); the ancestor <a> overrides
+   the size, and each variant sets its own link COLOUR (blue on the light band,
+   white over the hero image). */
+main ol.breadcrumb {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0;
-  margin: 0 0 56px; /* source: ~56px below the breadcrumb before the eyebrow */
+  margin: 0;
   padding: 0;
   list-style: none;
   font-size: 14px;
@@ -369,30 +372,41 @@ main .default-content-wrapper ol.breadcrumb {
   color: rgb(62 63 65);
 }
 
-main .default-content-wrapper ol.breadcrumb > li {
+main ol.breadcrumb > li {
   display: inline-flex;
   align-items: center;
 }
 
-/* Ancestor crumb links: 16px blue, no underline (source: the <a> overrides the
-   <li>'s 14px grey). Cascade order is deliberate. */
-/* stylelint-disable-next-line no-descending-specificity */
-main .default-content-wrapper ol.breadcrumb > li a:any-link {
+/* Breadcrumb link layout; each variant sets colour. Cascade order deliberate
+   (overrides the generic dark-section link rule). */
+/* stylelint-disable no-descending-specificity */
+main ol.breadcrumb > li a:any-link {
   font-size: 16px;
-  color: var(--link-color); /* #1072B9 */
   text-decoration: none;
 }
 
-main .default-content-wrapper ol.breadcrumb > li a:any-link:hover {
+main ol.breadcrumb > li a:any-link:hover {
   text-decoration: underline;
 }
+/* stylelint-enable no-descending-specificity */
 
 /* Chevron after every crumb except the last (source uses ">" as an ::after). */
-main .default-content-wrapper ol.breadcrumb > li:not(:last-child)::after {
+main ol.breadcrumb > li:not(:last-child)::after {
   content: ">";
   margin: 0 8px;
   font-size: 14px;
   color: rgb(62 63 65);
+}
+
+/* Light-band variant (reports-and-presentations): ancestor links 16px blue,
+   ~56px gap below before the eyebrow. */
+main .default-content-wrapper ol.breadcrumb {
+  margin-bottom: 56px;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+main .default-content-wrapper ol.breadcrumb > li a:any-link {
+  color: var(--link-color); /* #1072B9 */
 }
 
 /* Section eyebrow: the small uppercase label above the H1 (same treatment as
@@ -567,4 +581,39 @@ main > .section.hero-light {
 /* Only the intro heading is white-on-teal; panel content stays dark-on-white. */
 .section-tabs-dark > .section-tabs-intro :is(h1, h2, h3, h4, h5, h6) {
   color: #fff;
+}
+
+/* ---- light band variant (source: careers FAQ tabs live in a light grey
+   section) ---- Same full-bleed technique as the dark band (direct child of
+   <main>, width:auto, no 100vw), but a light grey background and NO white text
+   — the tablist strip / white panels / dark body all read as normal. */
+.section-tabs-light {
+  max-width: none;
+  width: auto;
+  margin: 0;
+  padding: 64px 0;
+  background-color: rgb(243 246 247); /* light blue-grey */
+}
+
+/* Re-center the light widget's inner content in a NARROWER column than the
+   standard 1200px: the source constrains the FAQ tabs so the tablist lands
+   ~940px and accordion headers ~848px. Matching that keeps the two-line question
+   wrapping (hence per-item heights + total page height) in line with the source. */
+.section-tabs-light > .section-tabs-intro,
+.section-tabs-light > .section-tabs-list,
+.section-tabs-light > .section-tabs-panel {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* The source insets the panel CONTENT by ~30px each side within a wider box, so
+   its accordion is ~848px while the tablist stays 940px. Reproduce that on the
+   LIGHT variant only: box-sizing:border-box so the 940px max-width is the OUTER
+   box, then 46px horizontal padding → 940 − 2×46 = 848px content. The tablist
+   above is unaffected; reports' dark panels keep the base 16px. */
+.section-tabs-light > .section-tabs-panel {
+  box-sizing: border-box;
+  padding-left: 46px;
+  padding-right: 46px;
 }

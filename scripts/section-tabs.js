@@ -16,7 +16,10 @@
  *   | tab-intro | true |   — marks a heading section that renders ABOVE the
  *                           tablist (the widget's title), not as a tab/panel.
  *   | tab-style | dark |   — paints the whole widget (heading + tablist +
- *                           panels) as one full-bleed dark band.
+ *                           panels) as one full-bleed teal band (white text).
+ *   | tab-style | light |  — full-bleed light grey (rgb(243,246,247)) band,
+ *                           dark text (careers FAQ). Absent → plain in-column
+ *                           widget, no band.
  *
  * IMPORTANT — runs EAGERLY, during decorateMain(), before the page is revealed.
  * It reads the tab label straight from the section's Section Metadata table
@@ -79,7 +82,7 @@ function readSectionMetadata(section) {
 
 /**
  * Build one tabs widget from a run of adjacent sections.
- * @param {object} run { items, labels, intro, dark }
+ * @param {object} run { items, labels, intro, style }
  * @param {number} widgetIndex index of this widget on the page (for unique ids)
  */
 function buildTabsWidget(run, widgetIndex) {
@@ -90,7 +93,11 @@ function buildTabsWidget(run, widgetIndex) {
   // intro heading if present, otherwise the first tab section).
   const anchor = intro || sections[0];
   const wrapper = document.createElement('div');
-  wrapper.className = run.dark ? 'section-tabs section-tabs-dark' : 'section-tabs';
+  // `tab-style` maps to a full-bleed band variant: dark (teal) or light (grey).
+  // Absent → the plain in-column widget (no band).
+  wrapper.className = 'section-tabs';
+  if (run.style === 'dark') wrapper.classList.add('section-tabs-dark');
+  else if (run.style === 'light') wrapper.classList.add('section-tabs-light');
 
   anchor.parentElement.insertBefore(wrapper, anchor);
 
@@ -185,7 +192,7 @@ export default function buildSectionTabs(main) {
       // to the previous run member.
       if (!run || run.group !== group || !isContiguous(run, section)) {
         run = {
-          group, items: [], labels: [], intro: null, dark: false, lastEl: null,
+          group, items: [], labels: [], intro: null, style: null, lastEl: null,
         };
         runs.push(run);
       }
@@ -195,7 +202,9 @@ export default function buildSectionTabs(main) {
         run.items.push(section);
         run.labels.push(meta.tab);
       }
-      if (meta['tab-style'] === 'dark') run.dark = true;
+      if (meta['tab-style'] === 'dark' || meta['tab-style'] === 'light') {
+        run.style = meta['tab-style'];
+      }
       run.lastEl = section;
     } else {
       run = null;
